@@ -1,7 +1,5 @@
 "use strict";
 
-let User = require(__root_dir + '/models/User').User;
-
 let UserMessage = App.db().define('user_messages', {
   userFrom: Seq.INTEGER,
   userTo: Seq.INTEGER,
@@ -9,6 +7,6 @@ let UserMessage = App.db().define('user_messages', {
   isDelivered: Seq.BOOLEAN
 });
 
-UserMessage.belongsTo(User, {as: 'sender', foreignKey: 'userFrom', targetKey: 'id'});
+UserMessage.belongsTo(Model.get('User'), {as: 'sender', foreignKey: 'userFrom', targetKey: 'id'});
 
 module.exports.UserMessage = UserMessage;

@@ -1,6 +1,6 @@
 "use strict";
 
-let UserMessage = require(__root_dir + '/models/UserMessage').UserMessage;
+/* global App, Model, Helper, Socket, Response */
 
 class SocketsController {
     
@@ -13,14 +13,14 @@ class SocketsController {
     
     static updateProfile(ws, data) {
         let updateData = {};
-		const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs'];
-		updateData = Helper.leftKeys(data, keys);
-        if(data.password) {
+        const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs'];
+        updateData = Helper.leftKeys(data, keys);
+        if (data.password) {
             updateData.password = App.sha1(data.password);
         }
-		if (Object.keys(updateData).length > 0) {
-			Model.get('User').update( updateData, {where: {id: ws.user_id}} );
-		}
+        if (Object.keys(updateData).length > 0) {
+            Model.get('User').update(updateData, {where: {id: ws.user_id}});
+        }
         ws.send(Response.socket('profile_updated', {}));
     }
     
@@ -401,7 +401,6 @@ class SocketsController {
         if (data.limit && data.limit > 0) {
             limit = data.limit;
         }
-        const UserMessage = require(__root_dir + '/models/UserMessage').UserMessage;
         let query = {
             attributes: ['id', 'message', 'createdAt'],
             where: {userTo: ws.user_id, isDelivered: false},
@@ -443,20 +442,9 @@ class SocketsController {
                     if (App.sha1(data.password) === user.password) {
                         Socket.authorize(ws, user);
                         
-                        const UserMessage = require(__root_dir + '/models/UserMessage').UserMessage;
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: 0}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
                             ws.send(Response.socket('user_logined', response));
-//                            // Formatter here
-//                            // App.Formatter().userProfile(user)
-//                            const keys = ['id', 'firstName', 'lastName', 'nickName', 'email', 'token', 'allowFriends', 'allowRandom', 'meetsCount', 'avatar', 'phone', 'friends', 'requestsFrom'];
-//                            let response = Helper.leftKeys(user.toJSON(), keys);
-//                            response.unreadMessages = count;
-//                            response.friendRequests = JSON.parse(response.requestsFrom).length;
-//                            response.friendsCount = JSON.parse(response.friends).length;
-//                            delete response.friends;
-//                            delete response.requestsFrom;
-//                            ws.send(Response.socket('user_logined', response));
                         });
                     } else {
                         ws.send(Response.socket('login_error', {}, __('incorrect_login_or_pass')));
