@@ -1,8 +1,5 @@
 "use strict";
 
-const emailValidator = require("email-validator");
-let User = require(__root_dir + '/models/User').User;
-
 class CreateUser {
 
     handle(data, ws) {
@@ -32,9 +29,9 @@ class CreateUser {
                 }
             }
             if (errors.length === 0) {
-                User.count({where: {nickName: data.nickName}}).then(function (count) {
+                Model.get('User').count({where: {nickName: data.nickName}}).then(function (count) {
                     if (count <= 0) {
-                        User.count({where: {email: data.email}}).then(function () {
+                        Model.get('User').count({where: {email: data.email}}).then(function () {
                             if (count <= 0) {
                                 resolve(true);
                             } else {

@@ -1,7 +1,5 @@
 "use strict";
 
-let User = require(__root_dir + '/models/User').User;
-
 class Auth {
     
     handle(data, ws) {
@@ -10,7 +8,7 @@ class Auth {
                 resolve(true);
             } else {
                 if (Helper.isVar(data.api_token)) {
-                    User.findOne({
+                    Model.get('User').findOne({
                       where: {token: data.api_token}
                     }).then(function(user) {
                         if(user) {

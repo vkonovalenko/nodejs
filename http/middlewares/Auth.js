@@ -1,11 +1,9 @@
 "use strict";
 
-let User = require(__root_dir + '/models/User').User;
-
 const Auth = function (req, res, next) {
     req = req.body;
     if (Helper.isVar(req.api_token)) {
-        User.findOne({
+        Model.get('User').findOne({
           where: {token: req.api_token}
         }).then(function(user) {
             if(user) {
