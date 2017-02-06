@@ -5,6 +5,7 @@ global.Helper = require('./helpers/Helper').Helper;
 global.Config = require('./helpers/Config').Config;
 global.Response = require('./helpers/Response').Response;
 global.Socket = require('./sockets/helpers/Socket').Socket;
+global.Model = require('./helpers/Model').Model;
 
 const App = require('./helpers/App').App;
 App.init();

@@ -1,12 +1,11 @@
 "use strict";
 
-let User = require(__root_dir + '/models/User').User;
 let UserMessage = require(__root_dir + '/models/UserMessage').UserMessage;
 
 class SocketsController {
     
     static getProfile(ws, data) {
-        UserMessage.count({where: {userTo: ws.user_id, isDelivered: 0}}).then(function(count) {
+        Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: 0}}).then(function(count) {
             let response = App.formatter().userProfile(ws, count);
             ws.send(Response.socket('profile', response));
         });
@@ -20,7 +19,7 @@ class SocketsController {
             updateData.password = App.sha1(data.password);
         }
 		if (Object.keys(updateData).length > 0) {
-			User.update( updateData, {where: {id: ws.user_id}} );
+			Model.get('User').update( updateData, {where: {id: ws.user_id}} );
 		}
         ws.send(Response.socket('profile_updated', {}));
     }
@@ -30,12 +29,12 @@ class SocketsController {
             const messageText = data.message;
             const userTo = data.userTo;
             if (ws.user_id != userTo) {
-                User.count({id: userTo}).then(function(count) {
+                Model.get('User').count({id: userTo}).then(function(count) {
                     // make check for blocking
                     if (count) {
                         const receiver = Socket.clients(userTo);
                         const isDelivered = Socket.isLogined(receiver);
-                        UserMessage.create({
+                        Model.get('UserMessage').create({
                             message: messageText,
                             userFrom: ws.user_id,
                             userTo: userTo,
@@ -206,7 +205,7 @@ class SocketsController {
     static addFriend(ws, data) {
         if (data.friendId !== ws.user_id) {
             // a lot of different checks for ban etc
-            User.findOne({
+            Model.get('User').findOne({
                 where: {id: data.friendId}
             }).then(function (user2) {
                 if (user2) {
@@ -224,12 +223,12 @@ class SocketsController {
                         requestsTo = getArray(ws.requestsTo);
                         if (!Helper.inArray(data.friendId, requestsTo)) {
                             requestsTo.push(data.friendId);
-                            User.update({requestsTo: getDbJson(requestsTo)}, {where: {id: ws.user_id}});
+                            Model.get('User').update({requestsTo: getDbJson(requestsTo)}, {where: {id: ws.user_id}});
                         }
                         // user 2
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
                             requestsFrom.push(ws.user_id);
-                            User.update({requestsFrom: getDbJson(requestsFrom)}, {where: {id: user2.id}});
+                            Model.get('User').update({requestsFrom: getDbJson(requestsFrom)}, {where: {id: user2.id}});
                         }
                         ws.send(Response.socket('friend_added', {}));
                     // user 2 already have request from user 1
@@ -248,7 +247,7 @@ class SocketsController {
 
                             friends.push(user2.id);
 
-                            User.update({
+                            Model.get('User').update({
                                 friends: getDbJson(friends),
                                 requestsTo: getDbJson(requestsTo),
                                 requestsFrom: getDbJson(requestsFrom)
@@ -272,7 +271,7 @@ class SocketsController {
 
                             friends.push(ws.user_id);
 
-                            User.update({
+                            Model.get('User').update({
                                 friends: getDbJson(friends),
                                 requestsTo: getDbJson(requestsTo),
                                 requestsFrom: getDbJson(requestsFrom)
@@ -382,7 +381,7 @@ class SocketsController {
             user.token = uuidV4();
             user.password = App.sha1(user.password);
             user.friends = '[]';
-            return User.create( user );
+            return Model.get('User').create( user );
         }).then(function(user){
             user = user.toJSON();
             const keys = ['id', 'firstName', 'lastName', 'nickName', 'email', 'token', 'phone'];
@@ -414,12 +413,12 @@ class SocketsController {
                 attributes: ['id', 'nickName', 'avatar']
             }]
         };
-        UserMessage.findAll(query).then(function(messages) {
+        Model.get('UserMessage').findAll(query).then(function(messages) {
             if (messages.length > 0) {
                 // make it async
                 delete query.include;
                 delete query.attributes;
-                UserMessage.update({isDelivered: true}, query);
+                Model.get('UserMessage').update({isDelivered: true}, query);
                 let response = {};
                 messages.forEach(function (message, k) {
                     response = message.toJSON();
@@ -436,7 +435,7 @@ class SocketsController {
             ws.send(Response.socket('login_error', {}, __('email_or_nickname_required')));
         } else {
             let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.email};
-            User.findOne({
+            Model.get('User').findOne({
                 where: whereCond
             }).then(function (user) {
                 if (user) {
@@ -445,7 +444,7 @@ class SocketsController {
                         Socket.authorize(ws, user);
                         
                         const UserMessage = require(__root_dir + '/models/UserMessage').UserMessage;
-                        UserMessage.count({where: {userTo: user.id, isDelivered: 0}}).then(function(count) {
+                        Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: 0}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
                             ws.send(Response.socket('user_logined', response));
 //                            // Formatter here
