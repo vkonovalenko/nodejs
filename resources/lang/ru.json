@@ -1,0 +1,16 @@
+{
+	"nickname_empty": "Никнейм обязателен для заполнения.",
+	"first_name_empty": "Имя обязательно для заполнения.",
+	"password_empty": "Пароль обязателен для заполнения.",
+	"password_too_short": "Пароль должен быть не менее 3 символов.",
+	"email_empty": "Email обязателен для заполнения.",
+	"email_format_incorrect": "Непавильный формат Email адреса.",
+	"email_taken": "Email уже используется.",
+	"nickname_taken": "Никнейм уже используется.",
+	"device_os_error": "Ошибка определения операционной системы устройства.",
+	"email_or_nickname": "Email или Никнейм обязательны для заполнения.",
+	"incorrect_login_or_pass": "Неправильный Логин или Пароль.",
+	"token_not_found": "Токен не найден",
+	"user_not_found": "Пользователь не найден",
+	"email_or_nickname_required": "Email или Никнейм обязательны для заполнения."
+}

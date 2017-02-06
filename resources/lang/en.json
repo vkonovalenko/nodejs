@@ -1,0 +1,16 @@
+{
+    "nickname_empty": "Nickname can not be empty.",
+    "first_name_empty": "First name can not be empty.",
+    "password_empty": "Password can not be empty.",
+    "password_too_short": "Password must contains no less then 3 digits.",
+    "email_empty": "Email can not be empty.",
+    "email_format_incorrect": "Incorrect format of email.",
+    "email_taken": "Email already has been taken.",
+    "nickname_taken": "Nickname already has been taken.",
+    "device_os_error": "Can not define device operation system.",
+    "email_or_nickname_required": "Email or Nickname is required.",
+    "incorrect_login_or_pass": "Incorrect Login or Password.",
+
+    "token_empty": "Token can not be empty.",
+    "user_not_found": "Пользователь не найден."
+}
