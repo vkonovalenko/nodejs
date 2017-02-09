@@ -7,6 +7,7 @@ const routes = {
     unread_messages: 'SocketsController.unreadMessages',
     message: 'SocketsController.message',
     profile: 'SocketsController.getProfile',
+    friends: 'SocketsController.friends',
     
     update_profile: 'SocketsController.updateProfile',
     set_location: 'SocketsController.setLocation',
@@ -21,6 +22,7 @@ const middlewares = {
     unread_messages: ['Auth'],
     message: ['Auth'],
     profile: ['Auth'],
+    friends: ['Auth'],
     
     update_profile: ['Auth'],
     set_location: ['Auth'],

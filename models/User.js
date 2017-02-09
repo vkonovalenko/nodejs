@@ -12,6 +12,7 @@ let User = App.db().define('users', {
   requestsTo: Seq.STRING,
   requestsFrom: Seq.STRING,
   friends: Seq.STRING,
+  hiddenFriends: Seq.STRING,
   allowFriends: Seq.INTEGER,
   allowRandom: Seq.INTEGER,
   meetsCount: Seq.INTEGER,

@@ -411,7 +411,7 @@ class SocketsController {
             limit: parseInt(limit, 10),
             order: 'createdAt ASC',
             include: [{
-                model: User,
+                model: Model.get('User'),
                 as: 'sender',
                 attributes: ['id', 'nickName', 'avatar']
             }]
@@ -438,6 +438,7 @@ class SocketsController {
             ws.send(Response.socket('login_error', {}, __('email_or_nickname_required')));
         } else {
             let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.email};
+            console.log(whereCond);
             Model.get('User').findOne({
                 where: whereCond
             }).then(function (user) {
@@ -456,7 +457,48 @@ class SocketsController {
                 } else {
                     ws.send(Response.socket('login_error', {}, __('incorrect_login_or_pass')));
                 }
+            }, function(err) {
+                console.log(err);
             });
+        }
+    }
+    
+    static friends(ws, data) {
+        const friends = JSON.parse(ws.friends);
+        if (friends.length) {
+            // Фотка, замочек, был онлайн, никнейм
+            // @TODO: sort by online and last message
+            const query = {
+                attributes: ['id', 'avatar', 'nickName', 'wasOnline'],
+                where: {
+                    id: {in: friends}
+                },
+                order: 'createdAt ASC'
+            };
+            Model.get('User').findAll(query).then(function(users) {
+                let result = [];
+                let formattedUser = {};
+                users.forEach(function (user, k) {
+                    formattedUser = user.toJSON();
+                    formattedUser.isOnline = false;
+                    formattedUser.isHidden = false;
+                    if (Socket.clients(formattedUser.id)) {
+                        formattedUser.isOnline = true;
+                    }
+                    if (Helper.isJson(ws.hiddenFriends)) {
+                        let hiddenFriends = JSON.parse(ws.hiddenFriends);
+                        if (Helper.inArray(formattedUser.id, hiddenFriends)) {
+                            formattedUser.isHidden = true;
+                        }
+                    }
+                    result.push(formattedUser);
+                });
+                ws.send(Response.socket('friends', {friends: result}));
+            }, function(error) {
+                console.log(error);
+            });
+        } else {
+            ws.send(Response.socket('friends', {friends: []}));
         }
     }
     
@@ -492,5 +534,9 @@ module.exports.SocketsController = SocketsController;
  * {"command":"profile_updated","data":{"firstName":"Vyacheslav","lastName":"konovalenko","nickName":"slavik","email":"slavik@ko.com","allowFriends":1,"allowRandom":1,"meetsCount":0,"avatar":"/asd/test.jpg","phone":null,"unreadMessages":0,"friendRequests":0,"friendsCount":0},"message":""}
  * 
  * 7)
+ * {"command": "friends"}
+ * {"command":"friends","data":{"friends":[{"id":6,"avatar":null,"nickName":"22","wasOnline":null,"isOnline":false,"isHidden":true},{"id":5,"avatar":null,"nickName":"11","wasOnline":null,"isOnline":false,"isHidden":false}]},"message":""}
+ * 
+ * 8)
  * 
  */

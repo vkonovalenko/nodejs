@@ -2,35 +2,33 @@
 
 class Socket {
     
-//    static clients = [];
-    
     static add(client) {
         if (Helper.isVar(client.user_id)) {
-            Socket.clients[client.user_id] = client;
+            Socket.__clients[client.user_id] = client;
         }
     }
     
     static del(client_id) {
-        if (Helper.isVar(client_id) && Helper.isVar(Socket.clients[client_id])) {
-            delete(Socket.clients[client_id]);
+        if (Helper.isVar(client_id) && Helper.isVar(Socket.__clients[client_id])) {
+            delete(Socket.__clients[client_id]);
         }
     }
     
     static clients(client_id) {
         if (Helper.isVar(client_id) && client_id) {
-            if (Helper.isVar(Socket.clients[client_id])) {
-                return Socket.clients[client_id];
+            if (Helper.isVar(Socket.__clients[client_id])) {
+                return Socket.__clients[client_id];
             } else {
                 return null;
             }
         } else {
-            return Socket.clients;
+            return Socket.__clients;
         }
     }
     
     static update(client_id, data) {
         Object.keys(data).forEach(function(key) {
-            Socket.clients[client_id][key] = data[key];
+            Socket.__clients[client_id][key] = data[key];
         });
     }
     
@@ -43,8 +41,11 @@ class Socket {
     }
     
     static authorize(ws, user) {
+        if (!Socket.__clients) {
+            Socket.__clients = {};
+        }
         if (Helper.isVar(ws.user_id)) {
-            delete(Socket.clients[ws.user_id]);
+            delete(Socket.__clients[ws.user_id]);
         }
         let friendsCount = 0;
         if (user.friends) {
@@ -58,6 +59,7 @@ class Socket {
         ws.firstName = user.firstName;
         ws.lastName = user.lastName;
         ws.friends = user.friends;
+        ws.hiddenFriends = user.hiddenFriends;
         ws.friendsCount = friendsCount;
         ws.requestsFrom = user.requestsFrom;
         ws.requestsTo = user.requestsTo;
@@ -65,7 +67,9 @@ class Socket {
         ws.allowRandom = user.allowRandom;
         ws.meetsCount = user.meetsCount;
         ws.wasOnline = user.wasOnline;
-        Socket.clients[user.id] = ws;
+        Socket.__clients[user.id] = ws;
+        console.log(ws);
+        console.log(111111);
     }
 }
 
