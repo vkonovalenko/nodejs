@@ -1,22 +1,5 @@
 "use strict";
 
-let User = require('../../models/User').User;
-
-// @TODO: rewrite this holly shit
-function getArray(vr) {
-	vr = (vr) ? vr : []; // user 2
-	if (isJson(vr)) {
-		vr = JSON.parse(vr);
-	} else {
-		vr = [];
-	}
-	return vr;
-}
-function getDbJson(arr) {
-	return '[' + arr.join(',') + ']';
-}
-// -------------------------------
-
 class UserController {
     
     static uploadPhoto(request, response) {
@@ -47,9 +30,3 @@ class UserController {
 }
 
 module.exports.UserController = UserController;
-
-/*
- * 1. Ищем токен в redis
- * 2. Если не находим - ищем токен в бд, находим - пишем в redis
- * 3. Когда юзер уходит в оффлайн удалять token из redis
- */

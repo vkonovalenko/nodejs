@@ -19,9 +19,13 @@ class SocketsController {
             updateData.password = App.sha1(data.password);
         }
         if (Object.keys(updateData).length > 0) {
-            Model.get('User').update(updateData, {where: {id: ws.user_id}});
+            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+                Socket.update(ws.user_id, updateData);
+                ws.send(Response.socket('profile_updated', App.formatter().userProfile(ws, 0)));
+            }, function(err) {
+                ws.send(Response.socket('update_profile_error', {}, __('update_profile_error')));
+            });
         }
-        ws.send(Response.socket('profile_updated', {}));
     }
     
     static message(ws, data) {
@@ -481,5 +485,12 @@ module.exports.SocketsController = SocketsController;
  * 
  * 5)
  * {"command": "profile"}
- * {"command":"user_logined","data":{"firstName":"slavik","lastName":"konovalenko","nickName":"slavik","email":"slavik@ko.com","allowFriends":1,"allowRandom":1,"meetsCount":0,"avatar":"/asd/test.jpg","phone":null,"unreadMessages":4,"friendRequests":0,"friendsCount":0},"message":""}
+ * {"command":"profile","data":{"firstName":"Vyacheslav","lastName":"konovalenko","nickName":"Vyacheslav","email":"slavik@ko.com","allowFriends":1,"allowRandom":1,"meetsCount":0,"avatar":"/asd/test.jpg","phone":null,"unreadMessages":4,"friendRequests":0,"friendsCount":0},"message":""}
+ * 
+ * 6)
+ * {"command": "update_profile", "data": {"firstName": "Vyacheslav"}}
+ * {"command":"profile_updated","data":{"firstName":"Vyacheslav","lastName":"konovalenko","nickName":"slavik","email":"slavik@ko.com","allowFriends":1,"allowRandom":1,"meetsCount":0,"avatar":"/asd/test.jpg","phone":null,"unreadMessages":0,"friendRequests":0,"friendsCount":0},"message":""}
+ * 
+ * 7)
+ * 
  */

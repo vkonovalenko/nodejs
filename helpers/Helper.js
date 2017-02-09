@@ -56,6 +56,9 @@ class Helper {
         return data;
     }
     
+    static getDbArray(arr) {
+        return '[' + arr.join(',') + ']';
+    }
 }
 
 module.exports.Helper = Helper;
