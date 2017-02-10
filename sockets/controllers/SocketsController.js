@@ -46,7 +46,6 @@ class SocketsController {
                         }).then(function(message) {
                             ws.send(Response.socket('message_sent', {}));
                             if (isDelivered) {
-                                console.log(ws.avatar);
                                 const keys = ['id', 'message', 'createdAt'];
                                 let response = Helper.leftKeys(message.toJSON(), keys);
                                 response.sender = {id: ws.user_id, nickName: ws.nickName, avatar: ws.avatar};
@@ -438,7 +437,6 @@ class SocketsController {
             ws.send(Response.socket('login_error', {}, __('email_or_nickname_required')));
         } else {
             let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.email};
-            console.log(whereCond);
             Model.get('User').findOne({
                 where: whereCond
             }).then(function (user) {
@@ -502,6 +500,59 @@ class SocketsController {
         }
     }
     
+	static createMeeting(ws, data) {
+		console.log(5);
+		if (data.userId && data.userId !== ws.user_id) {
+			console.log(6);
+			const client = Socket.clients(data.userId);
+			if (client) {
+				console.log(7);
+				const hiddenFriends = JSON.parse(client.hiddenFriends);
+				if (!Helper.inArray(ws.user_id, hiddenFriends)) {
+					console.log(8);
+					console.log(123);
+					let query = {
+						where: {
+							status: 1,
+							$or: [
+								{userFrom: ws.user_id, userTo: data.userId},
+								{userFrom: data.userId, userTo: ws.user_id}
+							]
+						}
+					};
+					
+					Model.get('Meeting').findOne(query).then(function(meeting) {
+						console.log(9);
+						if (!meeting) {
+							console.log(1);
+							const rawData = {
+								userFrom: ws.user_id,
+								userTo: data.userId
+							};
+							Model.get('Meeting').create(rawData).then(function(meeting) {
+								console.log(2);
+								ws.send(Response.socket('meeting_created', {}));
+							}, function(error) {
+								console.log(3);
+							});
+						} else {
+							console.log(4);
+							// встреча уже существует.
+						}
+					}, function(error) {
+						console.log(error);
+					});
+				} else {
+					// вы не можете создать встречу, юзер слишком далеко
+				}
+			} else {
+				
+			}
+		} else {
+			console.log(10);
+		}
+	}
+	
 }
 
 module.exports.SocketsController = SocketsController;

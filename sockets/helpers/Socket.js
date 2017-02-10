@@ -68,8 +68,6 @@ class Socket {
         ws.meetsCount = user.meetsCount;
         ws.wasOnline = user.wasOnline;
         Socket.__clients[user.id] = ws;
-        console.log(ws);
-        console.log(111111);
     }
 }
 

@@ -22,7 +22,6 @@ Handler.listenHttp = function() {
             }
         }
     });
-    console.log(Handler.http_middlewares);
     let routesControllers = {};
     for (let i = 0; i < routes.length; i++) {
         let handlerArr = routes[i].handler.split('.');
@@ -37,7 +36,6 @@ Handler.listenHttp = function() {
                 App.app().use(routes[i].url, middleware);
             }
         }
-        console.log(routes[i].url);
         // bind controller/action
         App.app().post(routes[i].url, routesControllers[handlerArr[0]][handlerArr[1]]);
     }
