@@ -555,26 +555,27 @@ class SocketsController {
             Model.get('Meeting').findOne({where: {id: data.meetingId, status: [0, 1]}}).then(function(meeting) {
                 if (meeting) {
                     if (meeting.userFrom === ws.user_id || meeting.userTo === ws.user_id) {
-                        Model.get('Meeting').update({status: 3}, {where: {id: meeting.id}}).then(function(meeting) {
-                            if (meeting.userFrom === ws.user_id) {
-                                ws.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
-                                let clinet = Socket.clients(meeting.userTo);
-                                if (clinet) {
-                                    clinet.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
-                                    clinet = null;
-                                } else {
-                                    // send push
-                                }
+                        Model.get('Meeting').update({status: 3}, {where: {id: meeting.id}}).then(function(count) {
+                            ws.send(Response.socket('you_discarded_meeting', {meetingId: meeting.id}));
+                            const clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
+                            let client = Socket.clients(clientId);
+                            if (client) {
+                                client.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
                             }
+                            meeting = null;
                         });
                     }
                 } else {
-                    
+                    ws.send(Response.socket('meeting_not_found', {}));
                 }
             });
         }
     }
+    
+    static approveMeeting(ws, data) {
         
+    }
+    
 }
 
 module.exports.SocketsController = SocketsController;

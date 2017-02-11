@@ -9,6 +9,7 @@ const routes = {
     profile: 'SocketsController.getProfile',
     friends: 'SocketsController.friends',
     request_meeting: 'SocketsController.requestMeeting',
+    discard_meeting: 'SocketsController.discardMeeting',
 	
     update_profile: 'SocketsController.updateProfile',
     set_location: 'SocketsController.setLocation',
@@ -25,6 +26,7 @@ const middlewares = {
     profile: ['Auth'],
     friends: ['Auth'],
     request_meeting: ['Auth'],
+    discard_meeting: ['Auth'],
     
     update_profile: ['Auth'],
     set_location: ['Auth'],
