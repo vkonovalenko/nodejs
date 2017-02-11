@@ -3,7 +3,8 @@
 let Meeting = App.db().define('meetings', {
   userFrom: Seq.INTEGER,
   userTo: Seq.INTEGER,
-  status: Seq.INTEGER
+  status: Seq.INTEGER,
+  expiredAt: Seq.INTEGER
 });
 
 module.exports.Meeting = Meeting;

@@ -4,13 +4,15 @@ const settings = {
 	port: 8002,
 	
 	time_online_expires: 180000, //180 sec, addition 000 cuz miliseconds
-	
+	meeting_expired: 1800000, // 30 min
+        
 	redis_coordinates_table: 'user:locations',
 	redis_dates_table: 'user_times', //zset for in format (ID => timestamp) to store user ping timestamp
 	
 	cron_users_online: '0 * * * * *', // every minute
 	cron_users_set_location: '/20 * * * * *', // every minute
 	cron_users_meeting: '*/3 * * * * *', // every 3 seconds
+//	cron_users_meeting: '* /20 * * * *', // every 3 seconds
 	
 	locale_default: 'ru',
 	locale_values: ['ru', 'en'],

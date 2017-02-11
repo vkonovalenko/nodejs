@@ -579,8 +579,10 @@ class SocketsController {
             Model.get('Meeting').findOne({where: {id: data.meetingId, status: 0}}).then(function(meeting) {
                 if (meeting) {
                     if (ws.user_id === meeting.userTo) {
+                        let date = new Date(Date.now() + Config.get('meeting_expired'));
+                        let expiredAt = date.toISOString().slice(0, 19).replace('T', ' ');
                         // async update
-                        Model.get('Meeting').update({status: 1}, {where: {id: meeting.id}});
+                        Model.get('Meeting').update({status: 1, expiredAt: expiredAt}, {where: {id: meeting.id}});
                         ws.send(Response.socket('you_approved_meeting', {meetingId: meeting.id}));
                         const clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
                         let client = Socket.clients(clientId);
