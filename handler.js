@@ -19,6 +19,7 @@ Handler.listenHttp = function() {
             if(Helper.isNo(Handler.http_middlewares[middlewares[key][i]])) {
                 middleware = require(__root_dir + '/http/middlewares/' + middlewares[key][i]);
                 Handler.http_middlewares[middlewares[key][i]] = middleware[middlewares[key][i]];
+                middleware = null;
             }
         }
     });
@@ -34,6 +35,7 @@ Handler.listenHttp = function() {
                 middleware = Handler.http_middlewares[middlewares[routes[i].url][j]];
                 // attach middleware
                 App.app().use(routes[i].url, middleware);
+                middleware = null;
             }
         }
         // bind controller/action
@@ -42,25 +44,32 @@ Handler.listenHttp = function() {
 };
 
 Handler.listenSockets = function() {
-    const socketRoutes = require(__root_dir + '/sockets/routes/routes');
+    let socketRoutes = require(__root_dir + '/sockets/routes/routes');
     const events = socketRoutes.events;
     const routes = socketRoutes.routes;
     const middlewares = socketRoutes.middlewares;
+    socketRoutes = null;
+    let event = null;
     // load events
     Object.keys(events).forEach(function(key) {
         if(typeof Handler.sockets_events[key] === 'undefined') {
-            const event = require(__root_dir + '/sockets/events/' + events[key]);
+            event = require(__root_dir + '/sockets/events/' + events[key]);
             Handler.sockets_events[key] = event[events[key]];
+            event = null;
         }
     });
     // load controllers
+    let handlerArr = null;
+    let controller_name = null;
+    let action_name = null;
     Object.keys(routes).forEach(function(key) {
-        let handlerArr = routes[key].split('.');
-        let controller_name = handlerArr[0];
-        let action_name = handlerArr[1];
+        handlerArr = routes[key].split('.');
+        controller_name = handlerArr[0];
+        action_name = handlerArr[1];
         if(Helper.isNo(Handler.sockets_controllers[controller_name])) {
             let controller = require(__root_dir + '/sockets/controllers/' + controller_name);
             Handler.sockets_controllers[key] = controller[controller_name][action_name];
+            controller = null;
         }
     });
     // load middlewares
@@ -70,6 +79,7 @@ Handler.listenSockets = function() {
             if(Helper.isNo(Handler.sockets_middlewares[middlewares[key][i]])) {
                 middleware = require(__root_dir + '/sockets/middlewares/' + middlewares[key][i]);
                 Handler.sockets_middlewares[middlewares[key][i]] = middleware[middlewares[key][i]];
+                middleware = null;
             }
         }
     });
@@ -99,6 +109,7 @@ Handler.listenSockets = function() {
                                     class_name = middlewares[data.command][i];
                                     middleware = new Handler.sockets_middlewares[class_name]();
                                     Promise.all([middleware.handle(params, ws)]).then(function(result) {
+                                        result = null;
                                         if (Helper.isNo(middlewares[data.command][i+1])) {
                                             if (Helper.isVar(routes[data.command])) {
                                                 // execute command
@@ -108,6 +119,7 @@ Handler.listenSockets = function() {
                                             }
                                         }
                                     }).catch(function(error) {
+                                        error = null;
                                         //middleware didn't pass
                                     });
                                 }
