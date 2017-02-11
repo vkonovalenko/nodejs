@@ -10,6 +10,9 @@
     "device_os_error": "Can not define device operation system.",
     "email_or_nickname_required": "Email or Nickname is required.",
     "incorrect_login_or_pass": "Incorrect Login or Password.",
+    "meeting_exists": "Meeting already exists.",
+    "meeting_user_offline": "User for meeting is offline.",
+    "meeting_user_too_far": "You can not create meeting, user is too far..",
 
     "user_not_found": "Пользователь не найден.",
     "update_profile_error": "Can not update profile information."

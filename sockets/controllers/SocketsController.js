@@ -500,58 +500,47 @@ class SocketsController {
         }
     }
     
-	static createMeeting(ws, data) {
-		console.log(5);
-		if (data.userId && data.userId !== ws.user_id) {
-			console.log(6);
-			const client = Socket.clients(data.userId);
-			if (client) {
-				console.log(7);
-				const hiddenFriends = JSON.parse(client.hiddenFriends);
-				if (!Helper.inArray(ws.user_id, hiddenFriends)) {
-					console.log(8);
-					console.log(123);
-					let query = {
-						where: {
-							status: 1,
-							$or: [
-								{userFrom: ws.user_id, userTo: data.userId},
-								{userFrom: data.userId, userTo: ws.user_id}
-							]
-						}
-					};
-					
-					Model.get('Meeting').findOne(query).then(function(meeting) {
-						console.log(9);
-						if (!meeting) {
-							console.log(1);
-							const rawData = {
-								userFrom: ws.user_id,
-								userTo: data.userId
-							};
-							Model.get('Meeting').create(rawData).then(function(meeting) {
-								console.log(2);
-								ws.send(Response.socket('meeting_created', {}));
-							}, function(error) {
-								console.log(3);
-							});
-						} else {
-							console.log(4);
-							// встреча уже существует.
-						}
-					}, function(error) {
-						console.log(error);
-					});
-				} else {
-					// вы не можете создать встречу, юзер слишком далеко
-				}
-			} else {
-				
-			}
-		} else {
-			console.log(10);
-		}
-	}
+    static createMeeting(ws, data) {
+        if (data.userId && data.userId !== ws.user_id) {
+            const client = Socket.clients(data.userId);
+            if (client) {
+                const hiddenFriends = JSON.parse(client.hiddenFriends);
+                if (!Helper.inArray(ws.user_id, hiddenFriends)) {
+                    let query = {
+                        where: {
+                            status: 1,
+                            $or: [
+                                {userFrom: ws.user_id, userTo: data.userId},
+                                {userFrom: data.userId, userTo: ws.user_id}
+                            ]
+                        }
+                    };
+                    Model.get('Meeting').findOne(query).then(function (meeting) {
+                        if (!meeting) {
+                            const rawData = {
+                                userFrom: ws.user_id,
+                                userTo: data.userId
+                            };
+                            Model.get('Meeting').create(rawData).then(function (meeting) {
+                                ws.send(Response.socket('meeting_created', {}));
+                            }, function (error) {
+                                // ошибка создания встречи в БД
+                            });
+                        } else {
+                            ws.send(Response.socket('meeting_exists', {}, __('meeting_exists')));
+                        }
+                    });
+                } else {
+                    //юзер скрыл шаринг координат
+                    ws.send(Response.socket('meeting_user_too_far', {}, __('meeting_user_too_far')));
+                }
+            } else {
+                ws.send(Response.socket('meeting_user_offline', {}, __('meeting_user_offline')));
+            }
+        } else {
+            // встреча с самим собой
+        }
+    }
 	
 }
 
