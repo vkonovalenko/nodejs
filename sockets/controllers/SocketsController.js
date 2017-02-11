@@ -500,12 +500,14 @@ class SocketsController {
         }
     }
     
-    static createMeeting(ws, data) {
+    static requestMeeting(ws, data) {
         if (data.userId && data.userId !== ws.user_id) {
-            const client = Socket.clients(data.userId);
+            let client = Socket.clients(data.userId);
             if (client) {
                 const hiddenFriends = JSON.parse(client.hiddenFriends);
+                console.log(1);
                 if (!Helper.inArray(ws.user_id, hiddenFriends)) {
+                    console.log(2);
                     let query = {
                         where: {
                             status: 1,
@@ -516,14 +518,19 @@ class SocketsController {
                         }
                     };
                     Model.get('Meeting').findOne(query).then(function (meeting) {
+                        console.log(3);
                         if (!meeting) {
+                            console.log(4);
                             const rawData = {
                                 userFrom: ws.user_id,
                                 userTo: data.userId
                             };
                             Model.get('Meeting').create(rawData).then(function (meeting) {
-                                ws.send(Response.socket('meeting_created', {}));
+                                ws.send(Response.socket('meeting_requested', {meetingId: meeting.id, userTo: data.userId}));
+                                client.send(Response.socket('request_meeting', {meetingId: meeting.id, userFrom: ws.user_id}));
+                                client = null;
                             }, function (error) {
+                                console.log(error);
                                 // ошибка создания встречи в БД
                             });
                         } else {
@@ -538,16 +545,54 @@ class SocketsController {
                 ws.send(Response.socket('meeting_user_offline', {}, __('meeting_user_offline')));
             }
         } else {
+            console.log(5);
             // встреча с самим собой
         }
     }
 	
+    static discardMeeting(ws, data) {
+        if (data.meetingId) {
+            Model.get('Meeting').findOne({where: {id: data.meetingId, status: [0, 1]}}).then(function(meeting) {
+                if (meeting) {
+                    if (meeting.userFrom === ws.user_id || meeting.userTo === ws.user_id) {
+                        Model.get('Meeting').update({status: 3}, {where: {id: meeting.id}}).then(function(meeting) {
+                            if (meeting.userFrom === ws.user_id) {
+                                ws.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
+                                let clinet = Socket.clients(meeting.userTo);
+                                if (clinet) {
+                                    clinet.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
+                                    clinet = null;
+                                } else {
+                                    // send push
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    
+                }
+            });
+        }
+    }
+        
 }
 
 module.exports.SocketsController = SocketsController;
 
 /*
+ * meeting statuses:
+ * 0 - meeting request
+ * 1 - meeting approved
+ * 2 - meeting success
+ * 3 - meeting discarded
+ * 4 - meeting expired
+*/
+
+/*
  * REQUESTS:
+ * 
+ * {"command": "profile", "data": {"api_token": "1"}}
+ * 
  * 1)
  * {"command": "signup", "data": {"firstName": "slavik", "lastName": "konovalenko", "email": "slavik@ko.com", "password": "123", "nickName": "koslavik", "deviceOs": "android"}}
  * {"command":"user_created","data":{"id":12,"firstName":"slavik","lastName":"konovalenko","email":"slavik@ko.com","nickName":"koslavik","token":"641faa16-6ba0-4418-8b4a-481a09ecf8c4","friends":[],"allowFriends":true,"allowRandom":true,"meetsCount":0},"message":""}
@@ -578,5 +623,8 @@ module.exports.SocketsController = SocketsController;
  * {"command":"friends","data":{"friends":[{"id":6,"avatar":null,"nickName":"22","wasOnline":null,"isOnline":false,"isHidden":true},{"id":5,"avatar":null,"nickName":"11","wasOnline":null,"isOnline":false,"isHidden":false}]},"message":""}
  * 
  * 8)
- * 
+ * {"command": "request_meeting", "data": {"userId": "5"}}
+ * {"command":"meeting_user_offline","data":{},"message":"Пользователь для встречи оффлайн."}
+ * {"command":"meeting_requested","data":{"meetingId":2, "userTo": 5},"message":""}
+ * {"command":"request_meeting","data":{"meetingId":2,"userFrom":15},"message":""}
  */
