@@ -7,4 +7,7 @@ let Meeting = App.db().define('meetings', {
   expiredAt: Seq.INTEGER
 });
 
+Meeting.belongsTo(Model.get('User'), {as: 'sender', foreignKey: 'userFrom', targetKey: 'id'});
+Meeting.belongsTo(Model.get('User'), {as: 'receiver', foreignKey: 'userTo', targetKey: 'id'});
+
 module.exports.Meeting = Meeting;

@@ -508,7 +508,7 @@ class SocketsController {
                 console.log(1);
                 if (!Helper.inArray(ws.user_id, hiddenFriends)) {
                     console.log(2);
-                    let query = {
+                    const query = {
                         where: {
                             status: 1,
                             $or: [
@@ -598,7 +598,48 @@ class SocketsController {
     }
     
     static meetings(ws, data) {
-        
+        let query = {
+            where: {
+                status: [0, 1],
+                $or: [
+                    {userFrom: ws.user_id},
+                    {userTo: ws.user_id}
+                ]
+            },
+            include: [
+                { model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar'] },
+                { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
+            ],
+            order: 'createdAt DESC'
+        };
+        Model.get('Meeting').findAll(query).then(function(meetings) {
+            let formatted = [];
+            if (meetings) {
+                let myRequest = false;
+                let result = {};
+                let expiredAt = 0;
+                let timeLeft = 0;
+                meetings.forEach(function(meeting, key) {
+                    myRequest = (meeting.userFrom === ws.user_id);
+                    if (myRequest) {
+                        result.user = meeting.receiver.toJSON();
+                    } else {
+                        result.user = meeting.sender.toJSON();
+                    }
+                    expiredAt = parseInt((new Date(meeting.expiredAt)).getTime() / 1000, 10);
+                    timeLeft = expiredAt - parseInt(Date.now() / 1000, 10);
+                    if (timeLeft < 0) {
+                        timeLeft = 0;
+                    }
+                    result.myRequest = myRequest;
+                    result.id = meeting.id;
+                    result.expiredAt = expiredAt;
+                    result.timeLeft = timeLeft;
+                    formatted.push(result);
+                });
+            }
+            ws.send(Response.socket('meetings', {meetings: formatted}));
+        });
     }
     
 }
@@ -669,5 +710,9 @@ module.exports.SocketsController = SocketsController;
  * {"command":"do_set_location","data":{},"message":""}
  * 
  * 12)
+ * {"command": "meetings"}
+ * {"command":"meetings","data":{"meetings":[{"user":{"id":15,"nickName":"koslavik","avatar":"/asd/test.jpg"},"myRequest":false,"id":2,"expiredAt":1486850318,"timeLeft":0}]},"message":""}
+ * 
+ * 13)
  * 
  */

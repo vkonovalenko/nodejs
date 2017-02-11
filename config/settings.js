@@ -11,8 +11,8 @@ const settings = {
 	
 	cron_users_online: '0 * * * * *', // every minute
 	cron_users_set_location: '/20 * * * * *', // every minute
-	cron_users_meeting: '*/3 * * * * *', // every 3 seconds
-//	cron_users_meeting: '* /20 * * * *', // every 3 seconds
+//	cron_users_meeting: '*/3 * * * * *', // every 3 seconds
+	cron_users_meeting: '* 20 * * * *', // every hour
 	
 	locale_default: 'ru',
 	locale_values: ['ru', 'en'],
