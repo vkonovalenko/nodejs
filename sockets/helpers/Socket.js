@@ -3,18 +3,21 @@
 class Socket {
     
     static add(client) {
+        Socket.__check_clients();
         if (Helper.isVar(client.user_id)) {
             Socket.__clients[client.user_id] = client;
         }
     }
     
     static del(client_id) {
+        Socket.__check_clients();
         if (Helper.isVar(client_id) && Helper.isVar(Socket.__clients[client_id])) {
             delete(Socket.__clients[client_id]);
         }
     }
     
     static clients(client_id) {
+        Socket.__check_clients();
         if (Helper.isVar(client_id) && client_id) {
             if (Helper.isVar(Socket.__clients[client_id])) {
                 return Socket.__clients[client_id];
@@ -27,6 +30,7 @@ class Socket {
     }
     
     static update(client_id, data) {
+        Socket.__check_clients();
         Object.keys(data).forEach(function(key) {
             Socket.__clients[client_id][key] = data[key];
         });
@@ -41,9 +45,7 @@ class Socket {
     }
     
     static authorize(ws, user) {
-        if (!Socket.__clients) {
-            Socket.__clients = {};
-        }
+        Socket.__check_clients();
         if (Helper.isVar(ws.user_id)) {
             delete(Socket.__clients[ws.user_id]);
         }
@@ -68,6 +70,12 @@ class Socket {
         ws.meetsCount = user.meetsCount;
         ws.wasOnline = user.wasOnline;
         Socket.__clients[user.id] = ws;
+    }
+    
+    static __check_clients() {
+        if (!Socket.__clients) {
+            Socket.__clients = {};
+        }
     }
 }
 

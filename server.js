@@ -27,6 +27,7 @@ require('./http/middlewares/app/FileUpload.js');
  */
 require('./http/crons/updateUsersOnline');
 require('./http/crons/setLocationRequest');
+require('./http/crons/setMeetingLocation');
 
 /*
  * Listen port
