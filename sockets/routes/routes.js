@@ -13,10 +13,10 @@ const routes = {
     approve_meeting: 'SocketsController.approveMeeting',
     meetings: 'SocketsController.meetings',
     do_meeting: 'SocketsController.doMeeting',
-
-    update_profile: 'SocketsController.updateProfile',
     set_location: 'SocketsController.setLocation',
     get_locations: 'SocketsController.getLocations',
+
+    update_profile: 'SocketsController.updateProfile',
     save_files: 'SocketsController.saveFiles',
     add_friend: 'SocketsController.addFriend',
     ping: 'SocketsController.ping'
@@ -33,10 +33,10 @@ const middlewares = {
     approve_meeting: ['Auth'],
     meetings: ['Auth'],
     do_meeting: ['Auth', 'SetLocation'],
+    set_location: ['Auth', 'SetLocation'],
+    get_locations: ['Auth', 'SetLocation'],
     
     update_profile: ['Auth'],
-    set_location: ['Auth'],
-    get_locations: ['Auth'],
     save_files: ['Auth'],
     add_friend: ['Auth'],
     ping: ['Auth']

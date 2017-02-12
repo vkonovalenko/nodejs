@@ -60,77 +60,51 @@ class SocketsController {
         }
     }
     
-    static setLocation(ws, data, sendResponse) {
-        return new Promise(function(resolve, reject) {
-            if (Helper.checkParams(data, ['lat', 'lon'])) {
-                // @TODO: add check for radius and coords
-                const coords = {
-                        latitude: data.lat,
-                        longitude: data.lon
-                };
-                // table "user:locations"
-                App.geo().removeLocation(ws.user_id);
-                App.geo().addLocation(ws.user_id, coords, function (err, reply) {
-                    if (!err) {
-                        //ok
-                        Socket.update(ws.user_id, {lat: coords.latitude, lon: coords.longitude});
-                        if (sendResponse) {
-                            const response = Response.socket('coords_setted', {});
-                            ws.send(response);
-                        }
-                        resolve(true);
-                    } else {
-                        if (sendResponse) {
-                            const response = Response.socket('coords_not_setted', {});
-                            ws.send(response);
-                            reject(false);
-                        }
-                    }
-                });
-            } else {
-                console.log('incorrect coordinates data.');
-                reject(false);
-            }
-        });
+    static setLocation(ws, data) {
+        ws.send(Response.socket('coords_setted', {}));
     }
     
     static getLocations(ws, data) {
-        if (Helper.checkParams(data, ['lat', 'lon', 'radius'])) {
-            Promise.all([SocketsController.setLocation(ws, data, false)]).then(function(result) {
-                const coords = {
-                        latitude: data.lat,
-                        longitude: data.lon
-                };
-                // @TODO: add check for radius
-                const radius = data.radius;
+        if (data.radius) {
+            const coords = {
+                    latitude: data.lat,
+                    longitude: data.lon
+            };
+            // @TODO: add check for radius
+            const radius = data.radius;
 
-                App.geo().nearby(coords, radius, {
-                    withDistances: true,
-                    withCoordinates: true,
-                    order: true
-                }, function (err, locations) {
-                    if (!err) {
-                        let friendsNear = [];
-                        let randomPeople = [];
-                        const length = locations.length;
-                        
-                        let send_data = null;
-                        let client = null;
-                        // async, cuz "k >= length - 1"
-                        if (length > 0) {
-                            locations.forEach(function (item, k) {
-                                if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user id from both listings
-                                    // check for friends
-                                    // user has friends and item.key(user_id) in friend list
+            App.geo().nearby(coords, radius, {
+                withDistances: true,
+                withCoordinates: true,
+                order: true
+            }, function (err, locations) {
+                if (!err) {
+                    let friendsNear = [];
+                    let randomPeople = [];
+                    const length = locations.length;
+
+                    let send_data = null;
+                    let user = null;
+                    let client = null;
+                    // async, cuz "k >= length - 1"
+                    if (length > 0) {
+                        locations.forEach(function (item, k) {
+                            if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user id from both listings
+                                console.log(item.key);
+                                client = Socket.clients(item.key);
+                                if (client) {
                                     user = {
                                         id: item.key, //user_id
-                                        distance: item.distance
+                                        nickName: client.nickName,
+                                        distance: item.distance,
+                                        avatar: client.avatar
                                         //item.latitude, item.longitude
                                     };
+                                    // check for friends
+                                    // user has friends and item.key(user_id) in friend list
                                     if (ws.friends.length && Helper.inArray(item.key, ws.friends)) {
                                         // if user allow friends to find him
-                                        client = Socket.clients(item.key);
-                                        if (client && client.allowFriends) {
+                                        if (client.allowFriends) {
                                             friendsNear.push(user);
                                         }
                                         if (k >= length - 1) {
@@ -139,8 +113,7 @@ class SocketsController {
                                         }
                                     } else if (!Helper.inArray(item.key, ws.friends)) {
                                         // if user allow to find him from random mets
-                                        client = Socket.clients(item.key);
-                                        if (client && client.allowRandom) {
+                                        if (client.allowRandom) {
                                             randomPeople.push(user);
                                         }
                                         if (k >= length - 1) {
@@ -148,22 +121,20 @@ class SocketsController {
                                             ws.send(Response.socket('people', send_data));
                                         }
                                     }
-                                } else {
-                                    if (k >= length - 1) {
-                                        send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
-                                        ws.send(Response.socket('people', send_data));
-                                    }
                                 }
-                            });
-                        } else {
-                            ws.send(Response.socket('people', {friendsNear: [], randomPeople: []}));
-                        }
+                            } else {
+                                if (k >= length - 1) {
+                                    send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
+                                    ws.send(Response.socket('people', send_data));
+                                }
+                            }
+                        });
                     } else {
-                        console.log('errror');
+                        ws.send(Response.socket('people', {friendsNear: [], randomPeople: []}));
                     }
-                });
-            }).catch(function(error){
-                
+                } else {
+                    console.log('errror');
+                }
             });
         }
     }
@@ -765,5 +736,9 @@ module.exports.SocketsController = SocketsController;
  * {"command":"meeting_users","data":{"users":[{"id":5,"nickName":"11","avatar":null,"lat":"1.50000108975534374","lon":"1.20000153779983521"}]},"message":""}
  * 
  * 14)
+ * {"command": "get_locations", "data": {"lat": "1.0", "lon": "1.0", "radius": "900"}}
+ * {"command":"people","data":{"friendsNear":[{"id":"5","nickName":"asd","distance":3336.8358,"avatar":null}],"randomPeople":[]},"message":""}
+ * 
+ * 15)
  * 
  */
