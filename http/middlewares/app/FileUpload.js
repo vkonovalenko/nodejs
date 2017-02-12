@@ -2,4 +2,4 @@
 
 let fileUpload = require('express-fileupload');
 
-App.app().use('/user/uploadPhoto', fileUpload());
+App.app().use('/users/upload_photo', fileUpload());

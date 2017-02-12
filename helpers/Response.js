@@ -21,11 +21,12 @@ class Response {
         if (Helper.isNo(message)) {
             message = '';
         }
-        return {
+        const send_data = {
             command: command,
             data: data,
             message: message
         };
+        return JSON.stringify(send_data);
     }
 }
 
