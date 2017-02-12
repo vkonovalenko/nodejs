@@ -9,6 +9,8 @@ const settings = {
 	redis_coordinates_table: 'user:locations',
 	redis_dates_table: 'user_times', //zset for in format (ID => timestamp) to store user ping timestamp
 	
+        meeting_complete_meters: 15,
+        
 	cron_users_online: '0 * * * * *', // every minute
 	cron_users_set_location: '/20 * * * * *', // every minute
 //	cron_users_meeting: '*/3 * * * * *', // every 3 seconds

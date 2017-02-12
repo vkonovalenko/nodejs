@@ -9,8 +9,8 @@ schedule.scheduleJob(Config.get('cron_users_meeting'), function () {
             client2 = Socket.clients(meeting.userTo);
             if (Date.now() <= (new Date(meeting.expiredAt)).getTime()) {
                 if (client1 && client2) {
-                    client1.send(Response.socket('do_set_location', {}));
-                    client2.send(Response.socket('do_set_location', {}));
+                    client1.send(Response.socket('do_meeting', {}));
+                    client2.send(Response.socket('do_meeting', {}));
                 }
             } else {
                 Model.get('Meeting').update({status: 4}, {where: {id: meeting.id}});

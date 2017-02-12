@@ -12,6 +12,7 @@ const routes = {
     discard_meeting: 'SocketsController.discardMeeting',
     approve_meeting: 'SocketsController.approveMeeting',
     meetings: 'SocketsController.meetings',
+    do_meeting: 'SocketsController.doMeeting',
 
     update_profile: 'SocketsController.updateProfile',
     set_location: 'SocketsController.setLocation',
@@ -31,6 +32,7 @@ const middlewares = {
     discard_meeting: ['Auth'],
     approve_meeting: ['Auth'],
     meetings: ['Auth'],
+    do_meeting: ['Auth', 'SetLocation'],
     
     update_profile: ['Auth'],
     set_location: ['Auth'],

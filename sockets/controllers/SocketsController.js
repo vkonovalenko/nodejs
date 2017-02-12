@@ -642,6 +642,53 @@ class SocketsController {
         });
     }
     
+    static doMeeting(ws, data) {
+        const query = {
+            where: {
+                status: 1,
+                $or: [
+                    {userFrom: ws.user_id},
+                    {userTo: ws.user_id}
+                ]
+            },
+            include: [
+                { model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar'] },
+                { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
+            ]
+        };
+        let clientId = null;
+        Model.get('Meeting').findAll(query).then(function(meetings) {
+            if (meetings) {
+                let users = [];
+                let user = {};
+                meetings.forEach(function(meeting, key) {
+                    clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
+                    App.geo().location(clientId, function(err, location) {
+                        if (!err) {
+                            if (location) {
+                                if (meeting.userFrom === ws.user_id) {
+                                    user = meeting.receiver.toJSON();
+                                } else {
+                                    user = meeting.sender.toJSON();
+                                }
+                                user.lat = location.latitude;
+                                user.lon = location.longitude;
+                                users.push(user);
+                                if (!meeting[key + 1]) {
+                                    ws.send(Response.socket('meeting_users', {users: users}));
+                                }
+                            } else {
+                                console.log('location not set.');
+                            }
+                        }
+                    });                
+                });
+            } else {
+                ws.send(Response.socket('meeting_users', {users: []}));
+            }
+        });
+    }
+    
 }
 
 module.exports.SocketsController = SocketsController;
@@ -714,5 +761,9 @@ module.exports.SocketsController = SocketsController;
  * {"command":"meetings","data":{"meetings":[{"user":{"id":15,"nickName":"koslavik","avatar":"/asd/test.jpg"},"myRequest":false,"id":2,"expiredAt":1486850318,"timeLeft":0}]},"message":""}
  * 
  * 13)
+ * {"command": "do_meeting", "data": {"lat": "0.94501375303344304", "lon": "0.99999994039535522"}}
+ * {"command":"meeting_users","data":{"users":[{"id":5,"nickName":"11","avatar":null,"lat":"1.50000108975534374","lon":"1.20000153779983521"}]},"message":""}
+ * 
+ * 14)
  * 
  */
