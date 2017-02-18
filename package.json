@@ -22,7 +22,8 @@
     "express-ws": "*",
     "validator": "*",
     "uuid": "*",
-    "sha1": "*"
+    "sha1": "*",
+    "pg": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

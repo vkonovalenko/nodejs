@@ -5,7 +5,7 @@
 class SocketsController {
     
     static getProfile(ws, data) {
-        Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: 0}}).then(function(count) {
+        Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: false}}).then(function(count) {
             let response = App.formatter().userProfile(ws, count);
             ws.send(Response.socket('profile', response));
         });
@@ -349,12 +349,10 @@ class SocketsController {
     static signup(ws, data) {
         App.db().sync().then(function() {
             const uuidV4 = require('uuid/v4');
-            
             let keys = ['firstName', 'lastName', 'nickName', 'email', 'password', 'deviceOs'];
             let user = Helper.leftKeys(data, keys);
             user.token = uuidV4();
             user.password = App.sha1(user.password);
-            user.friends = '[]';
             return Model.get('User').create( user );
         }).then(function(user){
             user = user.toJSON();

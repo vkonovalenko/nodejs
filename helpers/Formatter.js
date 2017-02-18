@@ -10,8 +10,8 @@ class Formatter {
         }
 //        let response = Helper.leftKeys(user.toJSON(), keys);
         response.unreadMessages = unreadMessages;
-        response.friendRequests = JSON.parse(response.requestsFrom).length;
-        response.friendsCount = JSON.parse(response.friends).length;
+        response.friendRequests = response.requestsFrom.length;
+        response.friendsCount = response.friends.length;
         delete response.friends;
         delete response.requestsFrom;
         return response;
