@@ -57,7 +57,7 @@ class Socket {
         ws.avatar = user.avatar;
         ws.phone = user.phone;
         ws.email = user.email;
-        ws.nickName = user.firstName;
+        ws.nickName = user.nickName;
         ws.firstName = user.firstName;
         ws.lastName = user.lastName;
         ws.friends = user.friends;
