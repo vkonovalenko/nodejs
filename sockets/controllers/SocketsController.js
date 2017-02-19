@@ -182,6 +182,17 @@ class SocketsController {
             Model.get('User').findOne({
                 where: {id: data.friendId}
             }).then(function (user2) {
+                const user2Client = Socket.clients(user2.id);
+                const user1Data = {
+                    id: ws.user_id,
+                    nickName: ws.nickName,
+                    avatar: ws.avatar
+                };
+                const user2Data = {
+                    id: user2.id,
+                    nickName: user2.nickName,
+                    avatar: user2.avatar
+                };
                 if (user2) {
                     // user 2
                     let requestsTo = user2.requestsTo;
@@ -201,8 +212,11 @@ class SocketsController {
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
                             requestsFrom.push(ws.user_id);
                             Model.get('User').update({requestsFrom: Helper.getDbArray(requestsFrom)}, {where: {id: user2.id}});
+                            if (user1Data) {
+                                user2Client.send(Response.socket('new_friend_request', user1Data));
+                            }
                         }
-                        ws.send(Response.socket('friend_added', {}));
+                        ws.send(Response.socket('friend_requested', {}));
                     // user 2 already have request from user 1
                     } else {
                         console.log('success');
@@ -225,7 +239,7 @@ class SocketsController {
                                 requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: ws.user_id}}).then(function(result) {
                                 console.log('user 1 friends updated');
-                                // socket??
+                                ws.send(Response.socket('you_confirmed_friend', user2Data));
                             });
                         }
                         // update user 2 friends
@@ -249,6 +263,9 @@ class SocketsController {
                                 requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: user2.id}}).then(function(result) {
                                 console.log('user 2 friends updated');
+                                if (user1Data) {
+                                    user2Client.send(Response.socket('user_confirmed_friend', user1Data));
+                                }
                             });
                         }
                     }
@@ -412,7 +429,7 @@ class SocketsController {
                     if (App.sha1(data.password) === user.password) {
                         Socket.authorize(ws, user);
                         
-                        Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: 0}}).then(function(count) {
+                        Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
                             ws.send(Response.socket('user_logined', response));
                         });
@@ -736,5 +753,8 @@ module.exports.SocketsController = SocketsController;
  * {"command":"people","data":{"friendsNear":[{"id":"5","nickName":"asd","distance":3336.8358,"avatar":null}],"randomPeople":[]},"message":""}
  * 
  * 15)
- * 
+ * {"command": "add_friend", "data": {"friendId": "6"}}
+ * {"command":"friend_requested","data":{},"message":""}
+ * {"command":"new_friend_request","data":{"id":7,"nickName":"vpupkin","avatar":null},"message":""}
+ * {"command":"user_confirmed_friend","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}
  */

@@ -60,3 +60,9 @@ Commands and responses
 14)<br />
 {"command": "get_locations", "data": {"lat": "1.0", "lon": "1.0", "radius": "900"}}<br />
 {"command":"people","data":{"friendsNear":[{"id":"5","nickName":"asd","distance":3336.8358,"avatar":null}],"randomPeople":[]},"message":""}<br />
+
+15)<br />
+{"command": "add_friend", "data": {"friendId": "6"}}<br />
+{"command":"friend_requested","data":{},"message":""}<br />
+{"command":"new_friend_request","data":{"id":7,"nickName":"vpupkin","avatar":null},"message":""}<br />
+{"command":"user_confirmed_friend","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />
