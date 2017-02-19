@@ -173,8 +173,8 @@ class SocketsController {
      */
     
     /*
-     * @TODO: remove "getDbJson" and move db to postgres
      * @TODO: обновить данные в сокетах при обновлении (requestsTo и т.д.)
+     * @TODO: Слать другому пользователю запрос в друзья
      */
     static addFriend(ws, data) {
         if (data.friendId !== ws.user_id) {
@@ -183,33 +183,31 @@ class SocketsController {
                 where: {id: data.friendId}
             }).then(function (user2) {
                 if (user2) {
-
                     // user 2
-                    let requestsTo = getArray(user2.requestsTo);
-                    let requestsFrom = getArray(user2.requestsFrom);
-                    let friends = getArray(ws.friends);
-
+                    let requestsTo = user2.requestsTo;
+                    let requestsFrom = user2.requestsFrom;
+                    let friends = ws.friends;
                     if (Helper.inArray(data.friendId, friends)) { // check maybe friend already exists
                         ws.send(Response.socket('friend_exists', {}));
                     // user 2 dont have request from user 1
                     } else if (!Helper.inArray(ws.user_id, requestsTo)) {
                         // user 1
-                        requestsTo = getArray(ws.requestsTo);
+                        requestsTo = ws.requestsTo;
                         if (!Helper.inArray(data.friendId, requestsTo)) {
                             requestsTo.push(data.friendId);
-                            Model.get('User').update({requestsTo: getDbJson(requestsTo)}, {where: {id: ws.user_id}});
+                            Model.get('User').update({requestsTo: Helper.getDbArray(requestsTo)}, {where: {id: ws.user_id}});
                         }
                         // user 2
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
                             requestsFrom.push(ws.user_id);
-                            Model.get('User').update({requestsFrom: getDbJson(requestsFrom)}, {where: {id: user2.id}});
+                            Model.get('User').update({requestsFrom: Helper.getDbArray(requestsFrom)}, {where: {id: user2.id}});
                         }
                         ws.send(Response.socket('friend_added', {}));
                     // user 2 already have request from user 1
                     } else {
                         console.log('success');
                         // update user 1 friends
-                        let friends = getArray(ws.friends);
+                        let friends = ws.friends;
                         let index = 0;
                         if (!Helper.inArray(user2.id, friends)) {
 
@@ -222,20 +220,20 @@ class SocketsController {
                             friends.push(user2.id);
 
                             Model.get('User').update({
-                                friends: getDbJson(friends),
-                                requestsTo: getDbJson(requestsTo),
-                                requestsFrom: getDbJson(requestsFrom)
+                                friends: Helper.getDbArray(friends),
+                                requestsTo: Helper.getDbArray(requestsTo),
+                                requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: ws.user_id}}).then(function(result) {
                                 console.log('user 1 friends updated');
                                 // socket??
                             });
                         }
                         // update user 2 friends
-                        friends = getArray(user2.friends);
+                        friends = user2.friends;
                         if (!Helper.inArray(ws.user_id, friends)) {
 
-                            requestsTo = getArray(ws.requestsTo);
-                            requestsFrom = getArray(user2.requestsFrom);
+                            requestsTo = ws.requestsTo;
+                            requestsFrom = user2.requestsFrom;
 
                             index = requestsTo.indexOf(ws.user_id);
                             delete requestsTo[ index ];
@@ -246,9 +244,9 @@ class SocketsController {
                             friends.push(ws.user_id);
 
                             Model.get('User').update({
-                                friends: getDbJson(friends),
-                                requestsTo: getDbJson(requestsTo),
-                                requestsFrom: getDbJson(requestsFrom)
+                                friends: Helper.getDbArray(friends),
+                                requestsTo: Helper.getDbArray(requestsTo),
+                                requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: user2.id}}).then(function(result) {
                                 console.log('user 2 friends updated');
                             });

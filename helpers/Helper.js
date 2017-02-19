@@ -57,7 +57,7 @@ class Helper {
     }
     
     static getDbArray(arr) {
-        return '[' + arr.join(',') + ']';
+        return '{' + arr.join(',') + '}';
     }
 }
 
