@@ -174,7 +174,6 @@ class SocketsController {
     
     /*
      * @TODO: обновить данные в сокетах при обновлении (requestsTo и т.д.)
-     * @TODO: Слать другому пользователю запрос в друзья
      */
     static addFriend(ws, data) {
         if (data.friendId !== ws.user_id) {
@@ -207,12 +206,14 @@ class SocketsController {
                         if (!Helper.inArray(data.friendId, requestsTo)) {
                             requestsTo.push(data.friendId);
                             Model.get('User').update({requestsTo: Helper.getDbArray(requestsTo)}, {where: {id: ws.user_id}});
+                            Socket.update(ws.user_id, {requestsTo: requestsTo});
                         }
                         // user 2
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
                             requestsFrom.push(ws.user_id);
                             Model.get('User').update({requestsFrom: Helper.getDbArray(requestsFrom)}, {where: {id: user2.id}});
-                            if (user1Data) {
+                            if (user2Client) {
+                                Socket.update(user2.id, {requestsFrom: requestsFrom});
                                 user2Client.send(Response.socket('new_friend_request', user1Data));
                             }
                         }
@@ -239,6 +240,7 @@ class SocketsController {
                                 requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: ws.user_id}}).then(function(result) {
                                 console.log('user 1 friends updated');
+                                Socket.update(ws.user_id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
                                 ws.send(Response.socket('you_confirmed_friend', user2Data));
                             });
                         }
@@ -263,13 +265,13 @@ class SocketsController {
                                 requestsFrom: Helper.getDbArray(requestsFrom)
                             }, {where: {id: user2.id}}).then(function(result) {
                                 console.log('user 2 friends updated');
-                                if (user1Data) {
+                                if (user2Client) {
+                                    Socket.update(user2.id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
                                     user2Client.send(Response.socket('user_confirmed_friend', user1Data));
                                 }
                             });
                         }
                     }
-
                 } else {
                     ws.send(Response.socket('user_id_not_found', {}));
                 }
