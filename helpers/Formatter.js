@@ -8,6 +8,9 @@ class Formatter {
         for (let i = 0; i < keys.length; i++) {
             response[keys[i]] = user[keys[i]];
         }
+        if (user.user_id) {
+            response.id = user.user_id;
+        }
 //        let response = Helper.leftKeys(user.toJSON(), keys);
         response.unreadMessages = unreadMessages;
         response.friendRequests = response.requestsFrom.length;
