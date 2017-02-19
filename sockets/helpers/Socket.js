@@ -31,9 +31,11 @@ class Socket {
     
     static update(client_id, data) {
         Socket.__check_clients();
-        Object.keys(data).forEach(function(key) {
-            Socket.__clients[client_id][key] = data[key];
-        });
+        if (Socket.__clients[client_id]) {
+            Object.keys(data).forEach(function(key) {
+                Socket.__clients[client_id][key] = data[key];
+            });
+        }
     }
     
     static isLogined(client) {

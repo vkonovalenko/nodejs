@@ -57,7 +57,13 @@ class Helper {
     }
     
     static getDbArray(arr) {
-        return '{' + arr.join(',') + '}';
+        let result = [];
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] !== null && arr[i] !== undefined) {
+                result.push(arr[i]);
+            }
+        }
+        return '{' + result.join(',') + '}';
     }
 }
 

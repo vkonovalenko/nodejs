@@ -16,6 +16,7 @@ const routes = {
     set_location: 'SocketsController.setLocation',
     get_locations: 'SocketsController.getLocations',
     add_friend: 'SocketsController.addFriend',
+    delete_friend: 'SocketsController.deleteFriend',
 
     update_profile: 'SocketsController.updateProfile',
     save_files: 'SocketsController.saveFiles',
@@ -36,6 +37,7 @@ const middlewares = {
     set_location: ['Auth', 'SetLocation'],
     get_locations: ['Auth', 'SetLocation'],
     add_friend: ['Auth'],
+    delete_friend: ['Auth'],
     
     update_profile: ['Auth'],
     save_files: ['Auth'],

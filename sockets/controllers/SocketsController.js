@@ -172,9 +172,6 @@ class SocketsController {
      * Добавляем пользователя u1 айдишник пользователя u2 в requestsTo
      */
     
-    /*
-     * @TODO: обновить данные в сокетах при обновлении (requestsTo и т.д.)
-     */
     static addFriend(ws, data) {
         if (data.friendId !== ws.user_id) {
             // a lot of different checks for ban etc
@@ -278,6 +275,78 @@ class SocketsController {
             });
         } else {
             ws.send(Response.socket('adding_self', {}));
+        }
+    }
+    
+    static deleteFriend(ws, data) {
+        if (data.friendId !== ws.user_id) {
+            Model.get('User').findOne({
+                where: {id: data.friendId}
+            }).then(function (user2) {
+                const user2Client = Socket.clients(user2.id);
+                let index = null;
+                if (Helper.inArray(user2.id, ws.friends)) {
+                    index = ws.friends.indexOf(user2.id);
+                    if (index !== -1) {
+                        delete ws.friends[index];
+                        Model.get('User').update({
+                            friends: Helper.getDbArray(ws.friends)
+                        }, {where: {id: ws.user_id}}).then(function(result) {
+                            Socket.update(ws.user_id, {friends: ws.friends});
+                        });
+                    }
+                    
+                    index = user2.friends.indexOf(ws.user_id);
+                    if (index !== -1) {
+                        delete user2.friends[index];
+                        Model.get('User').update({
+                            friends: Helper.getDbArray(user2.friends)
+                        }, {where: {id: user2.id}}).then(function(result) {
+                            Socket.update(user2.id, {friends: user2.friends});
+                        });
+                    }
+                } else if(Helper.inArray(user2.id, ws.requestsFrom)) {
+                    index = ws.requestsFrom.indexOf(user2.id);
+                    if (index !== -1) {
+                        delete ws.requestsFrom[index];
+                        Model.get('User').update({
+                            requestsFrom: Helper.getDbArray(ws.requestsFrom)
+                        }, {where: {id: ws.user_id}}).then(function(result) {
+                            Socket.update(ws.user_id, {requestsFrom: ws.requestsFrom});
+                        });
+                    }
+                    
+                    index = user2.requestsTo.indexOf(ws.user_id);
+                    if (index !== -1) {
+                        delete user2.requestsTo[index];
+                        Model.get('User').update({
+                            requestsTo: Helper.getDbArray(user2.requestsTo)
+                        }, {where: {id: user2.id}}).then(function(result) {
+                            Socket.update(user2.id, {requestsTo: user2.requestsTo});
+                        });
+                    }
+                } else if(Helper.inArray(user2.id, ws.requestsTo)) {
+                    index = ws.requestsTo.indexOf(user2.id);
+                    if (index !== -1) {
+                        delete ws.requestsTo[index];
+                        Model.get('User').update({
+                            requestsTo: Helper.getDbArray(ws.requestsTo)
+                        }, {where: {id: ws.user_id}}).then(function(result) {
+                            Socket.update(ws.user_id, {requestsTo: ws.requestsTo});
+                        });
+                    }
+                    
+                    index = user2.requestsFrom.indexOf(ws.user_id);
+                    if (index !== -1) {
+                        delete user2.requestsFrom[index];
+                        Model.get('User').update({
+                            requestsFrom: Helper.getDbArray(user2.requestsFrom)
+                        }, {where: {id: user2.id}}).then(function(result) {
+                            Socket.update(user2.id, {requestsFrom: user2.requestsFrom});
+                        });
+                    }
+                }
+            });
         }
     }
     
