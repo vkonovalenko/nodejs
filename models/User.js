@@ -17,7 +17,8 @@ let User = App.db().define('users', {
   allowFriends: Seq.INTEGER,
   allowRandom: Seq.INTEGER,
   meetsCount: Seq.INTEGER,
-  wasOnline: Seq.STRING
+  wasOnline: Seq.STRING,
+  pushRadius: Seq.INTEGER
 });
 
 module.exports.User = User;

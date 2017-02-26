@@ -90,7 +90,7 @@ class SocketsController {
                     if (length > 0) {
                         locations.forEach(function (item, k) {
                             if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user id from both listings
-                                console.log(item.key);
+//                                console.log(item.key);
                                 client = Socket.clients(item.key);
                                 if (client) {
                                     user = {
@@ -106,7 +106,6 @@ class SocketsController {
                                         // if user allow friends to find him
                                         if (client.allowFriends) {
                                             friendsNear.push(user);
-//                                            Socket.friendNearPush(ws.user_id, user.id, user.distance);
                                         }
                                         if (k >= length - 1) {
                                             send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
@@ -121,6 +120,11 @@ class SocketsController {
                                             send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
                                             ws.send(Response.socket('people', send_data));
                                         }
+                                    }
+                                } else {
+                                    if (k >= length - 1) {
+                                        send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
+                                        ws.send(Response.socket('people', send_data));
                                     }
                                 }
                             } else {

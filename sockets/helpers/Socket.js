@@ -71,6 +71,7 @@ class Socket {
         ws.allowRandom = user.allowRandom;
         ws.meetsCount = user.meetsCount;
         ws.wasOnline = user.wasOnline;
+        ws.pushRadius = (user.pushRadius) ? user.pushRadius : Config.get('push_radius_default');
         Socket.__clients[user.id] = ws;
     }
     
