@@ -10,7 +10,6 @@
     "express-rate-limit": "^2.5.0",
     "georedis": "*",
     "i18n": "*",
-    "mysql": "*",
     "path-to-regexp": "*",
     "redis": "*",
     "send": "*",
@@ -23,7 +22,8 @@
     "validator": "*",
     "uuid": "*",
     "sha1": "*",
-    "pg": "*"
+    "pg": "*",
+    "node-pushnotifications": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
