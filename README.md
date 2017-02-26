@@ -66,3 +66,7 @@ Commands and responses
 {"command":"friend_requested","data":{},"message":""}<br />
 {"command":"new_friend_request","data":{"id":7,"nickName":"vpupkin","avatar":null},"message":""}<br />
 {"command":"user_confirmed_friend","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />
+
+16)<br />
+{"command":"friend_online","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />
+{"command":"friend_offline","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />

@@ -13,6 +13,7 @@ class Auth {
                     }).then(function(user) {
                         if(user) {
                             Socket.authorize(ws, user);
+                            Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
                             resolve(true);
                         } else {
                             ws.send('{"action": "do_login"}');

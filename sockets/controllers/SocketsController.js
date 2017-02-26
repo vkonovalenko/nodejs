@@ -499,6 +499,7 @@ class SocketsController {
                     const sha1 = require('sha1');
                     if (App.sha1(data.password) === user.password) {
                         Socket.authorize(ws, user);
+                        Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
                         
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);

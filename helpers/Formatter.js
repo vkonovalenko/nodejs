@@ -20,6 +20,18 @@ class Formatter {
         return response;
     }
     
+    static shortProfile(user) {
+        let response = {};
+        if (user.user_id) {
+            response.id = user.user_id;
+        } else {
+            response.id = user.id;
+        }
+        response.nickName = user.nickName;
+        response.avatar = user.avatar;
+        return response;
+    }
+    
 }
 
 module.exports.Formatter = Formatter;

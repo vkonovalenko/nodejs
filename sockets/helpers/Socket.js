@@ -79,6 +79,19 @@ class Socket {
             Socket.__clients = {};
         }
     }
+    
+    static sendToFriends(ws, command, data) {
+        console.log(ws.friends);
+        if (ws.friends) {
+            let friend = null;
+            ws.friends.forEach(function(friendId) {
+                friend = Socket.clients(friendId);
+                if (friend) {
+                    friend.send(Response.socket(command, data));
+                }
+            });
+        }
+    }
 }
 
 module.exports.Socket = Socket;
