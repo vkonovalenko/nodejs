@@ -112,7 +112,7 @@ class Socket {
                     if (send) {
                         let message = __('friend_near_you');
                         message = message.replace('{friend}', friend.nickName).replace('{distance}', distance);
-                        friend.send(Response.socket('near', {}, message));
+                        friend.send(Response.socket('friend_near', {}, message));
                     }
                 }
             });
