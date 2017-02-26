@@ -70,3 +70,4 @@ Commands and responses
 16)<br />
 {"command":"friend_online","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />
 {"command":"friend_offline","data":{"id":6,"nickName":"koslavik","avatar":null},"message":""}<br />
+{"command":"friend_near","data":{},"message":"Ваш друг koslavik рядом на расстоянии 0.0605 метров."}<br />
