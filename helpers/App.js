@@ -14,6 +14,7 @@ App.redis_module = null;
 App.redis_geo_module = null;
 App.sha1_module = null;
 App.formatter_module = null;
+App.push_module = null;
 
 App.init = function() {
     this.app();
@@ -34,6 +35,13 @@ App.validator = function() {
         this.validator_module = require("validator");
     }
     return this.validator_module;
+};
+
+App.push = function() {
+    if (this.push_module === null) {
+        this.push_module = require(__root_dir + '/helpers/Push').Push;
+    }
+    return this.push_module;
 };
 
 App.formatter = function() {
