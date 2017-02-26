@@ -106,6 +106,7 @@ class SocketsController {
                                         // if user allow friends to find him
                                         if (client.allowFriends) {
                                             friendsNear.push(user);
+//                                            Socket.friendNearPush(ws.user_id, user.id, user.distance);
                                         }
                                         if (k >= length - 1) {
                                             send_data = {friendsNear: friendsNear, randomPeople: randomPeople};

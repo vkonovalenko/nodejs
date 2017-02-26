@@ -14,6 +14,7 @@
     "meeting_user_offline": "User for meeting is offline.",
     "meeting_user_too_far": "You can not create meeting, user is too far.",
     "meeting_discarded": "Meeting was discarded.",
+    "friend_near_you": "Your friend {friend} near you on the distance {distance} meters.",
 
     "user_not_found": "Пользователь не найден.",
     "update_profile_error": "Can not update profile information."

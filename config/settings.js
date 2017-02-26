@@ -5,6 +5,8 @@ const settings = {
 	
 	time_online_expires: 180000, //180 sec, addition 000 cuz miliseconds
 	meeting_expired: 1800000, // 30 min
+	near_push_expired: 60,
+//	near_push_expired: 10800, // 3 hours (cuz seconds)
         
 	redis_coordinates_table: 'user:locations',
 	redis_dates_table: 'user_times', //zset for in format (ID => timestamp) to store user ping timestamp

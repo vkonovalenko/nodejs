@@ -92,6 +92,31 @@ class Socket {
             });
         }
     }
+    
+    static nearPushKey(receiverId, friendId) {
+        // n_p - near_push
+        // format - n_p_15_6 = 1488110090043 (timestamp need deviding by 1000)
+        return 'n_p_' + receiverId + '_' + friendId;
+    }
+    
+    static friendNearPush(receiverId, friendId, distance) {
+        const receiver = Socket.clients(receiverId);
+        const friend = Socket.clients(friendId);
+        if (receiver && friend) {
+            const redisKey = Socket.nearPushKey(receiverId, friendId);
+            App.redis().get(redisKey, function (err, resp) {
+                if (!err) {
+                    let send = (!resp);
+                    App.redis().setex(redisKey, Config.get('near_push_expired'), Date.now());
+                    if (send) {
+                        let message = __('friend_near_you');
+                        message = message.replace('{friend}', friend.nickName).replace('{distance}', distance);
+                        friend.send(Response.socket('near', {}, message));
+                    }
+                }
+            });
+        }
+    }
 }
 
 module.exports.Socket = Socket;
