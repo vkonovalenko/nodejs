@@ -718,8 +718,6 @@ class SocketsController {
             ]
         };
 		
-		// App.geo().distance(userId1, userId2, function() {});
-		
         let clientId = null;
         Model.get('Meeting').findAll(query).then(function(meetings) {
             if (meetings) {
@@ -737,6 +735,11 @@ class SocketsController {
                                 }
                                 user.lat = location.latitude;
                                 user.lon = location.longitude;
+								
+								App.geo().distance(ws.user_id, user.id, function(hz, distance) {
+									
+								});
+								
                                 users.push(user);
                                 if (!meeting[key + 1]) {
                                     ws.send(Response.socket('meeting_users', {users: users}));
