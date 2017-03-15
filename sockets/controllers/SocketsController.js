@@ -717,6 +717,9 @@ class SocketsController {
                 { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
             ]
         };
+		
+		// App.geo().distance(userId1, userId2, function() {});
+		
         let clientId = null;
         Model.get('Meeting').findAll(query).then(function(meetings) {
             if (meetings) {
