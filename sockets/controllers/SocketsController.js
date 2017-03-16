@@ -723,6 +723,8 @@ class SocketsController {
             if (meetings) {
                 let users = [];
                 let user = {};
+				let client = null;
+				let meetsCount = 0;
                 meetings.forEach(function(meeting, key) {
                     clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
                     App.geo().location(clientId, function(err, location) {
@@ -738,12 +740,41 @@ class SocketsController {
 								
 								App.geo().distance(ws.user_id, user.id, function(hz, distance) {
 									
+									if (distance < Config.get('meeting_complete_meters')) {
+										// set meeting status success
+										Model.get('Meeting').update({status: 2}, {where: {id: meeting.id}}).then(function(count) {
+											// increment success meets count
+											const usersQuery = {
+												where: {
+													$or: [
+														{id: ws.user_id},
+														{id: user.id}
+													]
+												}
+											};
+											Model.get('User').findAll(usersQuery).then(function(meetUsers) {
+												meetUsers.forEach(function(metUser, mkey) {
+													meetsCount = metUser.meetsCount + 1;
+													metUser.increment('meetsCount');
+													client = Socket.clients(metUser.id);
+													if (client) {
+														Socket.update(metUser.id, {meetsCount: meetsCount});
+														client.send(Response.socket('meeting_success', {meetingId: meeting.id, meetsCount: meetsCount}));
+													} else {
+														// push
+													}
+												});
+											});
+										});
+//										{"command": "meeting_success", "data": {"meetingId": "123", “meetsCount”: “5”}}
+									} else {
+										user.distance = distance;
+										users.push(user);
+										if (!meeting[key + 1]) {
+											ws.send(Response.socket('meeting_users', {users: users}));
+										}
+									}
 								});
-								
-                                users.push(user);
-                                if (!meeting[key + 1]) {
-                                    ws.send(Response.socket('meeting_users', {users: users}));
-                                }
                             } else {
                                 console.log('location not set.');
                             }
