@@ -440,7 +440,7 @@ class SocketsController {
     static signup(ws, data) {
         App.db().sync().then(function() {
             const uuidV4 = require('uuid/v4');
-            let keys = ['firstName', 'lastName', 'nickName', 'email', 'password', 'deviceOs'];
+            let keys = ['firstName', 'lastName', 'nickName', 'email', 'password', 'deviceOs', 'phone'];
             let user = Helper.leftKeys(data, keys);
             user.token = uuidV4();
             user.password = App.sha1(user.password);
