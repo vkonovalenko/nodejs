@@ -496,7 +496,11 @@ class SocketsController {
         } else if (!data.nickName && !data.email) {
             ws.send(Response.socket('login_error', {}, __('email_or_nickname_required')));
         } else {
-            let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.email};
+//            let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.nickName};
+            let whereCond = {$or: [
+                {nickName: data.nickName},
+                {email: data.nickName}
+            ]};
             Model.get('User').findOne({
                 where: whereCond
             }).then(function (user) {
