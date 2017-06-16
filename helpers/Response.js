@@ -7,7 +7,7 @@ function post_process(haystack) {
     if (typeof haystack === 'object' && haystack !== null) {
         Object.keys(haystack).forEach(function(key) {
             if (typeof haystack[key] === 'object' && haystack[key] !== null) {
-                return search(haystack[key]);
+                return post_process(haystack[key]);
             }
             if (haystack[key] === null) {
                 haystack[key] = '';
@@ -16,7 +16,7 @@ function post_process(haystack) {
             } else if (typeof haystack[key] === 'number') {
                 haystack[key] = haystack[key].toString();
             } else if (haystack[key] instanceof Array) {
-                return search(haystack[key]);
+                return post_process(haystack[key]);
             } else {
                 
             }
