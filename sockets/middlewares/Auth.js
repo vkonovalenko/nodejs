@@ -3,6 +3,13 @@
 class Auth {
     
     handle(data, ws) {
+        
+        let lang = 'ru';
+        if (data.lang) {
+            lang = data.lang;
+        }
+        App.i18n().setLocale(lang);
+        
         return new Promise(function(resolve, reject) {
             if (Socket.isLogined(ws)) {
                 resolve(true);

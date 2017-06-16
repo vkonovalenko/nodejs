@@ -3,6 +3,13 @@
 class CreateUser {
 
     handle(data, ws) {
+        
+        let lang = 'ru';
+        if (data.lang) {
+            lang = data.lang;
+        }
+        App.i18n().setLocale(lang);
+        
         return new Promise(function (resolve, reject) {
             let errors = [];
             if (!data.deviceOs || (data.deviceOs !== 'android' && data.deviceOs !== 'ios')) {
