@@ -9,6 +9,7 @@ global.Model = require('./helpers/Model').Model;
 
 const App = require('./helpers/App').App;
 App.init();
+App.i18n();
 
 global.App = App;
 global.Seq = App.Sequelize();
