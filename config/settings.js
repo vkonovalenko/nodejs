@@ -25,7 +25,9 @@ const settings = {
 	
 //	limit_req_per_second: 20
 	limit_req_per_second: 200000,
-        salt: '%$Er^b5#s%$*(^$E#*'
+        salt: '%$Er^b5#s%$*(^$E#*',
+        
+        email_pattern: "[a-zA-Z0-9\+\.\_\%\-\+]{1,256}\@[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}(\.[a-zA-Z0-9][a-zA-Z0-9\-]{0,25})"
 };
 
 module.exports.settings = settings;

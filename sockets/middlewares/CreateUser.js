@@ -31,7 +31,10 @@ class CreateUser {
             if (!data.email) {
                 errors.push(__('email_empty'));
             } else {
-                if (!App.validator().isEmail(data.email)) {
+                
+//                if (!App.validator().isEmail(data.email)) {
+                let emailReg = new RegExp(Config.get('email_pattern'));
+                if (!emailReg.test(data.email)) {
                     errors.push(__('email_format_incorrect'));
                 }
             }
