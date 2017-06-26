@@ -14,11 +14,12 @@ let User = App.db().define('users', {
   requestsFrom: Seq.STRING,
   friends: Seq.STRING,
   hiddenFriends: Seq.STRING,
-  allowFriends: Seq.INTEGER,
-  allowRandom: Seq.INTEGER,
+  allowFriends: Seq.BOOLEAN,
+  allowRandom: Seq.BOOLEAN,
   meetsCount: Seq.INTEGER,
   wasOnline: Seq.STRING,
-  pushRadius: Seq.INTEGER
+  pushRadius: Seq.INTEGER,
+  pushesEnabled: Seq.BOOLEAN
 });
 
 module.exports.User = User;

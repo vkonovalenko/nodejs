@@ -13,7 +13,7 @@ class SocketsController {
     
     static updateProfile(ws, data) {
         let updateData = {};
-        const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs'];
+        const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs', 'pushesEnabled'];
         updateData = Helper.leftKeys(data, keys);
         if (data.password) {
             updateData.password = App.sha1(data.password);

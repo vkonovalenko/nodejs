@@ -3,7 +3,7 @@
 class Formatter {
     
     static userProfile(user, unreadMessages) {
-        const keys = ['id', 'firstName', 'lastName', 'nickName', 'email', 'token', 'allowFriends', 'allowRandom', 'meetsCount', 'avatar', 'phone', 'friends', 'requestsFrom'];
+        const keys = ['id', 'firstName', 'lastName', 'nickName', 'email', 'token', 'allowFriends', 'allowRandom', 'meetsCount', 'avatar', 'phone', 'friends', 'requestsFrom', 'pushesEnabled'];
         let response = {};
         for (let i = 0; i < keys.length; i++) {
             response[keys[i]] = user[keys[i]];
