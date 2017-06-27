@@ -41,8 +41,8 @@ class CreateUser {
             if (errors.length === 0) {
                 Model.get('User').count({where: {nickName: data.nickName}}).then(function (count) {
                     if (count <= 0) {
-                        Model.get('User').count({where: {email: data.email}}).then(function () {
-                            if (count <= 0) {
+                        Model.get('User').count({where: {email: data.email}}).then(function (count2) {
+                            if (count2 <= 0) {
                                 resolve(true);
                             } else {
                                 ws.send(Response.socket('signup_error', {}, __('email_taken')));
