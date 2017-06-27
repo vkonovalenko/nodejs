@@ -15,7 +15,8 @@ const settings = {
         meeting_complete_meters: 15,
         
 	cron_users_online: '0 * * * * *', // every minute
-	cron_users_set_location: '/20 * * * * *', // every minute
+	cron_users_set_location: '*/30 * * * * *', // every 30 sec
+//	cron_users_set_location: '/20 * * * * *', // every minute
 //	cron_users_meeting: '*/3 * * * * *', // every 3 seconds
 	cron_users_meeting: '* 20 * * * *', // every hour
 	
