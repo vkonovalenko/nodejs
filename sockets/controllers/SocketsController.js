@@ -526,6 +526,27 @@ class SocketsController {
         }
     }
     
+    static relogin(ws, data) {
+		if (data.api_token) {
+			
+			if (ws.user_id) {
+				Socket.del(ws.user_id);
+			}
+			
+			Model.get('User').findOne({
+			  where: {token: data.api_token}
+			}).then(function(user) {
+				if(user) {
+					Socket.authorize(ws, user);
+					Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
+					ws.send(Response.socket('relogin', {result: true}));
+				} else {
+					ws.send(Response.socket('relogin', {result: false}));
+				}
+			});
+		}
+    }
+	
     static friends(ws, data) {
         const friends = JSON.parse(ws.friends);
         if (friends.length) {

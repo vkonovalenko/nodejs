@@ -4,6 +4,7 @@
 const routes = {
     signup: 'SocketsController.signup',
     login: 'SocketsController.login',
+    relogin: 'SocketsController.relogin',
     unread_messages: 'SocketsController.unreadMessages',
     message: 'SocketsController.message',
     profile: 'SocketsController.getProfile',
