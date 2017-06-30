@@ -539,9 +539,9 @@ class SocketsController {
 				if(user) {
 					Socket.authorize(ws, user);
 					Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
-					ws.send(Response.socket('relogin', {result: true}));
+					ws.send(Response.socket('relogined', {result: true}));
 				} else {
-					ws.send(Response.socket('relogin', {result: false}));
+					ws.send(Response.socket('relogined', {result: false}));
 				}
 			});
 		}
