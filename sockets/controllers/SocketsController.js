@@ -178,7 +178,7 @@ class SocketsController {
      */
     
     static addFriend(ws, data) {
-        if (parsInt(data.friendId, 10) !== parseInt(ws.user_id, 10)) {
+        if (parseInt(data.friendId, 10) !== parseInt(ws.user_id, 10)) {
             // a lot of different checks for ban etc
             Model.get('User').findOne({
                 where: {id: data.friendId}
@@ -199,30 +199,41 @@ class SocketsController {
                     let requestsTo = user2.requestsTo;
                     let requestsFrom = user2.requestsFrom;
                     let friends = ws.friends;
-                    if (Helper.inArray(data.friendId, friends)) { // check maybe friend already exists
+					
+					// check maybe friend already exists
+                    if (Helper.inArray(data.friendId, friends)) {
                         ws.send(Response.socket('friend_exists', {}));
                     // user 2 dont have request from user 1
-                    } else if (!Helper.inArray(ws.user_id, requestsTo)) {
+                    } else if (!Helper.inArray(data.friendId, requestsTo)) {
+						console.log('111111111111');
                         // user 1
+						let exists = true;
                         requestsTo = ws.requestsTo;
                         if (!Helper.inArray(data.friendId, requestsTo)) {
+							exists = false;
                             requestsTo.push(data.friendId);
                             Model.get('User').update({requestsTo: Helper.getDbArray(requestsTo)}, {where: {id: ws.user_id}});
                             Socket.update(ws.user_id, {requestsTo: requestsTo});
+							console.log('22222222222');
                         }
                         // user 2
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
                             requestsFrom.push(ws.user_id);
                             Model.get('User').update({requestsFrom: Helper.getDbArray(requestsFrom)}, {where: {id: user2.id}});
                             if (user2Client) {
+								exists = false;
                                 Socket.update(user2.id, {requestsFrom: requestsFrom});
                                 user2Client.send(Response.socket('new_friend_request', user1Data));
                             }
                         }
-                        ws.send(Response.socket('friend_requested', {}));
+						if (exists === false) {
+							ws.send(Response.socket('friend_requested', {}));
+						} else {
+							ws.send(Response.socket('friend_requested_twice', {}));
+						}
                     // user 2 already have request from user 1
                     } else {
-                        console.log('success');
+                        console.log('3333333333333');
                         // update user 1 friends
                         let friends = ws.friends;
                         let index = 0;
