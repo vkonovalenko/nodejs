@@ -496,7 +496,9 @@ class SocketsController {
             attributes: ['id', 'message', 'createdAt'],
             where: {userTo: ws.user_id, isDelivered: false},
             limit: parseInt(limit, 10),
-            order: 'createdAt ASC',
+            order: [
+                ['createdAt', 'ASC']
+            ],
             include: [{
                 model: Model.get('User'),
                 as: 'sender',
@@ -576,7 +578,7 @@ class SocketsController {
     }
 	
     static friends(ws, data) {
-        const friends = JSON.parse(ws.friends);
+        const friends = ws.friends;
         if (friends.length) {
             // Фотка, замочек, был онлайн, никнейм
             // @TODO: sort by online and last message
@@ -585,7 +587,9 @@ class SocketsController {
                 where: {
                     id: {in: friends}
                 },
-                order: 'createdAt ASC'
+                order: [
+                    ['createdAt', 'ASC']
+                ]
             };
             Model.get('User').findAll(query).then(function(users) {
                 let result = [];
