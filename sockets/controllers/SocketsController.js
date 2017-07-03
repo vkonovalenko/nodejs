@@ -28,6 +28,26 @@ class SocketsController {
         }
     }
     
+    static updateProfileBool(ws, data) {
+        let updateData = {};
+        const keys = ['allowFriends', 'allowRandom', 'pushesEnabled'];
+        updateData = Helper.leftKeys(data, keys);
+        if (Object.keys(updateData).length > 0) {
+            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+                Socket.update(ws.user_id, updateData);
+                if (data.allowFriends !== undefined) {
+                    ws.send(Response.socket('flag_updated', {result: data.allowFriends}));
+                } else if (data.allowRandom !== undefined) {
+                    ws.send(Response.socket('flag_updated', {result: data.allowRandom}));
+                } else if (data.pushesEnabled !== undefined) {
+                    ws.send(Response.socket('flag_updated', {result: data.pushesEnabled}));
+                }
+            }, function(err) {
+                ws.send(Response.socket('update_profile_error', {}, __('update_profile_error')));
+            });
+        }
+    }
+    
     static message(ws, data) {
         if (Helper.checkParams(data, ['message', 'userTo'])) {
             const messageText = data.message;
