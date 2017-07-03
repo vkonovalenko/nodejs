@@ -178,7 +178,7 @@ class SocketsController {
      */
     
     static addFriend(ws, data) {
-        if (data.friendId !== ws.user_id) {
+        if (parsInt(data.friendId, 10) !== parseInt(ws.user_id, 10)) {
             // a lot of different checks for ban etc
             Model.get('User').findOne({
                 where: {id: data.friendId}
