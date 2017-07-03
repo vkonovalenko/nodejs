@@ -25,6 +25,9 @@ class Helper {
     }
     
     static inArray(key, arr) {
+		if (arr.indexOf(key.toString()) !== -1 ) {
+			return true;
+		}
         return (arr.indexOf(parseInt(key, 10)) !== -1);
     }
     
