@@ -19,7 +19,8 @@ let User = App.db().define('users', {
   meetsCount: Seq.INTEGER,
   wasOnline: Seq.STRING,
   pushRadius: Seq.INTEGER,
-  pushesEnabled: Seq.BOOLEAN
+  pushesEnabled: Seq.BOOLEAN,
+  createdAt: Seq.STRING
 });
 
 module.exports.User = User;
