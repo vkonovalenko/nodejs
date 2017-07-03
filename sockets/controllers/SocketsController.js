@@ -204,17 +204,15 @@ class SocketsController {
                     if (Helper.inArray(data.friendId, friends)) {
                         ws.send(Response.socket('friend_exists', {}));
                     // user 2 dont have request from user 1
-                    } else if (!Helper.inArray(data.friendId, requestsTo)) {
-						console.log('111111111111');
+                    } else if (!Helper.inArray(data.friendId, ws.requestsFrom)) {
                         // user 1
-						let exists = true;
+                        let exists = true;
                         requestsTo = ws.requestsTo;
                         if (!Helper.inArray(data.friendId, requestsTo)) {
 							exists = false;
                             requestsTo.push(data.friendId);
                             Model.get('User').update({requestsTo: Helper.getDbArray(requestsTo)}, {where: {id: ws.user_id}});
                             Socket.update(ws.user_id, {requestsTo: requestsTo});
-							console.log('22222222222');
                         }
                         // user 2
                         if (!Helper.inArray(ws.user_id, requestsFrom)) {
@@ -233,7 +231,6 @@ class SocketsController {
 						}
                     // user 2 already have request from user 1
                     } else {
-                        console.log('3333333333333');
                         // update user 1 friends
                         let friends = ws.friends;
                         let index = 0;
