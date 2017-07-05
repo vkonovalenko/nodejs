@@ -36,11 +36,11 @@ class SocketsController {
             Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
                 Socket.update(ws.user_id, updateData);
                 if (data.allowFriends !== undefined) {
-                    ws.send(Response.socket('flag_updated', {result: data.allowFriends}));
+                    ws.send(Response.socket('allow_friends_updated', {result: data.allowFriends}));
                 } else if (data.allowRandom !== undefined) {
-                    ws.send(Response.socket('flag_updated', {result: data.allowRandom}));
+                    ws.send(Response.socket('allow_random_updated', {result: data.allowRandom}));
                 } else if (data.pushesEnabled !== undefined) {
-                    ws.send(Response.socket('flag_updated', {result: data.pushesEnabled}));
+                    ws.send(Response.socket('pushes_updated', {result: data.pushesEnabled}));
                 }
             }, function(err) {
                 ws.send(Response.socket('update_profile_error', {}, __('update_profile_error')));
