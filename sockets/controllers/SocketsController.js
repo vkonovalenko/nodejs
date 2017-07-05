@@ -591,6 +591,9 @@ class SocketsController {
                     ['createdAt', 'ASC']
                 ]
             };
+            
+            let friend = null;
+            
             Model.get('User').findAll(query).then(function(users) {
                 let result = [];
                 let formattedUser = {};
@@ -598,13 +601,28 @@ class SocketsController {
                     formattedUser = user.toJSON();
                     formattedUser.isOnline = false;
                     formattedUser.isHidden = false;
-                    if (Socket.clients(formattedUser.id)) {
-                        formattedUser.isOnline = true;
-                    }
+                    formattedUser.distance = "";
+                    
                     if (Helper.isJson(ws.hiddenFriends)) {
                         let hiddenFriends = JSON.parse(ws.hiddenFriends);
                         if (Helper.inArray(formattedUser.id, hiddenFriends)) {
                             formattedUser.isHidden = true;
+                        }
+                    }
+                    
+                    friend = Socket.clients(formattedUser.id);
+                    if (friend) {
+                        formattedUser.isOnline = true;
+                        if (ws.lat && ws.lon && friend.lat && friend.lon) {
+                            // friends allowed and we are not hiding for this user
+                            if (friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+                                // @TODO: fix bug here
+                                App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
+                                    if (!err) {
+                                        formattedUser.distance = parseInt(location, 10);
+                                    }
+                                });
+                            }
                         }
                     }
                     result.push(formattedUser);
