@@ -17,5 +17,6 @@
     "friend_near_you": "Your friend {friend} near you on the distance {distance} meters.",
 
     "user_not_found": "Пользователь не найден.",
-    "update_profile_error": "Can not update profile information."
+    "update_profile_error": "Can not update profile information.",
+    "update_password_error": "Your old password is incorrect."
 }

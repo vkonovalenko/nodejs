@@ -17,5 +17,6 @@
     "friend_near_you": "Ваш друг {friend} рядом на расстоянии {distance} метров.",
 
     "user_not_found": "Пользователь не найден",
-    "update_profile_error": "Не удалось обновить информацию профиля."
+    "update_profile_error": "Не удалось обновить информацию профиля.",
+	"update_password_error": "Текущий пароль указан неверно."
 }

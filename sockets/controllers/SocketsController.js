@@ -556,6 +556,22 @@ class SocketsController {
         }
     }
     
+	static updatePassword(ws, data) {
+		const sha1 = require('sha1');
+		if(data.old_password && data.new_password) {
+			if (App.sha1(data.old_password) === ws.password) {
+				const updateData = {password: App.sha1(data.new_password)};
+				Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+					ws.send(Response.socket('password_updated', {}));
+				}, function(err) {
+					ws.send(Response.socket('update_password_error', {}, __('update_profile_error')));
+				});
+			} else {
+				ws.send(Response.socket('update_password_error', {}, __('update_password_error')));
+			}
+		}
+	}
+	
     static relogin(ws, data) {
 		if (data.api_token) {
 			
