@@ -557,18 +557,26 @@ class SocketsController {
     }
     
 	static updatePassword(ws, data) {
-		const sha1 = require('sha1');
 		if(data.old_password && data.new_password) {
-			if (App.sha1(data.old_password) === ws.password) {
-				const updateData = {password: App.sha1(data.new_password)};
-				Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
-					ws.send(Response.socket('password_updated', {}));
-				}, function(err) {
-					ws.send(Response.socket('update_password_error', {}, __('update_profile_error')));
-				});
-			} else {
-				ws.send(Response.socket('update_password_error', {}, __('update_password_error')));
-			}
+            Model.get('User').findOne({
+                where: {id: ws.user_id}
+            }).then(function (user) {
+                if (user) {
+					const sha1 = require('sha1');
+					if (App.sha1(data.old_password) === user.password) {
+						const updateData = {password: App.sha1(data.new_password)};
+						Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+							ws.send(Response.socket('password_updated', {}));
+						}, function(err) {
+							ws.send(Response.socket('password_updated', {}, __('update_profile_error')));
+						});
+					} else {
+						ws.send(Response.socket('password_updated', {}, __('update_password_error')));
+					}
+                }
+            }, function(err) {
+                console.log(err);
+            });
 		}
 	}
 	
@@ -609,9 +617,10 @@ class SocketsController {
             };
             
             let friend = null;
-            
+			
+			let result = [];
+			
             Model.get('User').findAll(query).then(function(users) {
-                let result = [];
                 let formattedUser = {};
                 users.forEach(function (user, k) {
                     formattedUser = user.toJSON();
@@ -625,24 +634,32 @@ class SocketsController {
                             formattedUser.isHidden = true;
                         }
                     }
-                    
-                    friend = Socket.clients(formattedUser.id);
-                    if (friend) {
-                        formattedUser.isOnline = true;
-                        if (ws.lat && ws.lon && friend.lat && friend.lon) {
-                            // friends allowed and we are not hiding for this user
-                            if (friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
-                                // @TODO: fix bug here
-                                App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
-                                    if (!err) {
-                                        formattedUser.distance = parseInt(location, 10);
-                                    }
-                                });
-                            }
-                        }
-                    }
+					
                     result.push(formattedUser);
                 });
+				
+				result.forEach(function (user2, k2) {
+					Promise.all([function() {
+						friend = Socket.clients(user2.id);
+						if (friend) {
+							user2[k2].isOnline = true;
+							if (ws.lat && ws.lon && friend.lat && friend.lon) {
+								// friends allowed and we are not hiding for this user
+								if (friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+									// @TODO: fix bug here
+									
+									App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
+										if (!err) {
+											user2[k2].distance = parseInt(location, 10);
+										}
+									});
+								}
+							}
+						}
+					}]);
+
+				});
+				
                 ws.send(Response.socket('friends', {friends: result}));
             }, function(error) {
                 console.log(error);
