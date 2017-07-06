@@ -616,8 +616,6 @@ class SocketsController {
                 ]
             };
             
-            let friend = null;
-			
 			let result = [];
 			
             Model.get('User').findAll(query).then(function(users) {
@@ -638,31 +636,65 @@ class SocketsController {
                     result.push(formattedUser);
                 });
 				
+				console.log(result);
+				
+				const countUsers = result.length;
+				let itemsHandled = 0;
+				let friend = null;
+				
+				let send_response = function(result) {
+					let emptyDistances = [];
+					let withDistances = [];
+					result.forEach(function(item, k) {
+						if (item.distance) {
+							withDistances.push(item);
+						} else {
+							emptyDistances.push(item);
+						}
+					});
+					
+					function compare(a,b) {
+					  if (a.distance < b.distance)
+						return -1;
+					  if (a.distance > b.distance)
+						return 1;
+					  return 0;
+					}
+					
+					withDistances.sort(compare);
+					
+					result = withDistances.concat(emptyDistances)
+					
+					ws.send(Response.socket('friends', {friends: result}));
+				};
+				
 				result.forEach(function (user2, k2) {
-					Promise.all([function() {
-						friend = Socket.clients(user2.id);
-						if (friend) {
-							user2[k2].isOnline = true;
-							if (ws.lat && ws.lon && friend.lat && friend.lon) {
-								// friends allowed and we are not hiding for this user
-								if (friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
-									// @TODO: fix bug here
-									
-									App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
-										if (!err) {
-											user2[k2].distance = parseInt(location, 10);
-										}
-									});
+					friend = Socket.clients(user2.id);
+					if (friend) {
+						if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+							// friends allowed and we are not hiding for this user
+							App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
+								if (!err) {
+									result[k2].distance = parseInt(location, 10);
 								}
+								itemsHandled++;
+								if (countUsers === itemsHandled) {
+									send_response(result);
+								}
+							});
+						} else {
+							itemsHandled++;
+							if (countUsers === itemsHandled) {
+								send_response(result);
 							}
 						}
-					}]);
-
+					} else {
+						itemsHandled++;
+						if (countUsers === itemsHandled) {
+							send_response(result);
+						}
+					}
 				});
-				
-                ws.send(Response.socket('friends', {friends: result}));
-            }, function(error) {
-                console.log(error);
             });
         } else {
             ws.send(Response.socket('friends', {friends: []}));
