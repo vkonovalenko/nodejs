@@ -575,7 +575,7 @@ class SocketsController {
                         
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
-                            ws.send(Response.socket('user_logined', response, __('incorrect_login_or_pass')));
+                            ws.send(Response.socket('user_logined', response));
                         });
                     } else {
                         ws.send(Response.socket('user_logined', {}, __('incorrect_login_or_pass')));
