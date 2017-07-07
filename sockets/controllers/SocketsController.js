@@ -13,17 +13,50 @@ class SocketsController {
     
     static updateProfile(ws, data) {
         let updateData = {};
-        const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs', 'pushesEnabled'];
+        const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs', 'pushesEnabled', 'email', 'nickName'];
         updateData = Helper.leftKeys(data, keys);
         if (data.password) {
             updateData.password = App.sha1(data.password);
         }
+        
         if (Object.keys(updateData).length > 0) {
+            
+            let emailValid = true;
+            let nicknameValid = true;
+            
+            let promiseNickname = new Promise(function(resolve, reject) {
+                if (data.nickName && data.nickName != ws.nickName) {
+                    Model.get('User').count({where: {nickName: data.nickName}}).then(function(count) {
+                        if (count) {
+                            reject();
+                        }
+                    });
+                }
+            });
+            
+            promiseNickname.catch(function(err) {
+                ws.send(Response.socket('', {}, __('nickname_taken')));
+            });
+            
+            let promiseEmail = new Promise(function(resolve, reject) {
+                if (data.email && data.email != ws.email) {
+                    Model.get('User').count({where: {email: data.email}}).then(function(count) {
+                        if (count) {
+                            reject();
+                        }
+                    });
+                }
+            });
+            
+            promiseEmail.catch(function(err) {
+                ws.send(Response.socket('', {}, __('email_taken')));
+            });
+            
             Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
                 Socket.update(ws.user_id, updateData);
                 ws.send(Response.socket('profile_updated', App.formatter().userProfile(ws, 0)));
             }, function(err) {
-                ws.send(Response.socket('update_profile_error', {}, __('update_profile_error')));
+                ws.send(Response.socket('', {}, __('update_profile_error')));
             });
         }
     }
@@ -522,9 +555,9 @@ class SocketsController {
     
     static login(ws, data) {
         if (!data.password) {
-            ws.send(Response.socket('login_error', {}, __('password_empty')));
+            ws.send(Response.socket('', {}, __('password_empty')));
         } else if (!data.nickName && !data.email) {
-            ws.send(Response.socket('login_error', {}, __('email_or_nickname_required')));
+            ws.send(Response.socket('', {}, __('email_or_nickname_required')));
         } else {
 //            let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.nickName};
             let whereCond = {$or: [
@@ -542,13 +575,13 @@ class SocketsController {
                         
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
-                            ws.send(Response.socket('user_logined', response));
+                            ws.send(Response.socket('user_logined', response, __('incorrect_login_or_pass')));
                         });
                     } else {
-                        ws.send(Response.socket('login_error', {}, __('incorrect_login_or_pass')));
+                        ws.send(Response.socket('user_logined', {}, __('incorrect_login_or_pass')));
                     }
                 } else {
-                    ws.send(Response.socket('login_error', {}, __('incorrect_login_or_pass')));
+                    ws.send(Response.socket('user_logined', {}, __('incorrect_login_or_pass')));
                 }
             }, function(err) {
                 console.log(err);
@@ -562,17 +595,17 @@ class SocketsController {
                 where: {id: ws.user_id}
             }).then(function (user) {
                 if (user) {
-					const sha1 = require('sha1');
-					if (App.sha1(data.old_password) === user.password) {
-						const updateData = {password: App.sha1(data.new_password)};
-						Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
-							ws.send(Response.socket('password_updated', {}));
-						}, function(err) {
-							ws.send(Response.socket('password_updated', {}, __('update_profile_error')));
-						});
-					} else {
-						ws.send(Response.socket('password_updated', {}, __('update_password_error')));
-					}
+                    const sha1 = require('sha1');
+                    if (App.sha1(data.old_password) === user.password) {
+                            const updateData = {password: App.sha1(data.new_password)};
+                            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+                                    ws.send(Response.socket('password_updated', {}));
+                            }, function(err) {
+                                    ws.send(Response.socket('password_updated', {}, __('update_profile_error')));
+                            });
+                    } else {
+                            ws.send(Response.socket('password_updated', {}, __('update_password_error')));
+                    }
                 }
             }, function(err) {
                 console.log(err);
