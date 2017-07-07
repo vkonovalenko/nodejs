@@ -556,6 +556,30 @@ class SocketsController {
         }
     }
     
+	static updatePassword(ws, data) {
+		if(data.old_password && data.new_password) {
+            Model.get('User').findOne({
+                where: {id: ws.user_id}
+            }).then(function (user) {
+                if (user) {
+					const sha1 = require('sha1');
+					if (App.sha1(data.old_password) === user.password) {
+						const updateData = {password: App.sha1(data.new_password)};
+						Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+							ws.send(Response.socket('password_updated', {}));
+						}, function(err) {
+							ws.send(Response.socket('password_updated', {}, __('update_profile_error')));
+						});
+					} else {
+						ws.send(Response.socket('password_updated', {}, __('update_password_error')));
+					}
+                }
+            }, function(err) {
+                console.log(err);
+            });
+		}
+	}
+	
     static relogin(ws, data) {
 		if (data.api_token) {
 			
@@ -592,10 +616,9 @@ class SocketsController {
                 ]
             };
             
-            let friend = null;
-            
+			let result = [];
+			
             Model.get('User').findAll(query).then(function(users) {
-                let result = [];
                 let formattedUser = {};
                 users.forEach(function (user, k) {
                     formattedUser = user.toJSON();
@@ -609,27 +632,69 @@ class SocketsController {
                             formattedUser.isHidden = true;
                         }
                     }
-                    
-                    friend = Socket.clients(formattedUser.id);
-                    if (friend) {
-                        formattedUser.isOnline = true;
-                        if (ws.lat && ws.lon && friend.lat && friend.lon) {
-                            // friends allowed and we are not hiding for this user
-                            if (friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
-                                // @TODO: fix bug here
-                                App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
-                                    if (!err) {
-                                        formattedUser.distance = parseInt(location, 10);
-                                    }
-                                });
-                            }
-                        }
-                    }
+					
                     result.push(formattedUser);
                 });
-                ws.send(Response.socket('friends', {friends: result}));
-            }, function(error) {
-                console.log(error);
+				
+				console.log(result);
+				
+				const countUsers = result.length;
+				let itemsHandled = 0;
+				let friend = null;
+				
+				let send_response = function(result) {
+					let emptyDistances = [];
+					let withDistances = [];
+					result.forEach(function(item, k) {
+						if (item.distance) {
+							withDistances.push(item);
+						} else {
+							emptyDistances.push(item);
+						}
+					});
+					
+					function compare(a,b) {
+					  if (a.distance < b.distance)
+						return -1;
+					  if (a.distance > b.distance)
+						return 1;
+					  return 0;
+					}
+					
+					withDistances.sort(compare);
+					
+					result = withDistances.concat(emptyDistances)
+					
+					ws.send(Response.socket('friends', {friends: result}));
+				};
+				
+				result.forEach(function (user2, k2) {
+					friend = Socket.clients(user2.id);
+					if (friend) {
+						if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+							// friends allowed and we are not hiding for this user
+							App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
+								if (!err) {
+									result[k2].distance = parseInt(location, 10);
+								}
+								itemsHandled++;
+								if (countUsers === itemsHandled) {
+									send_response(result);
+								}
+							});
+						} else {
+							itemsHandled++;
+							if (countUsers === itemsHandled) {
+								send_response(result);
+							}
+						}
+					} else {
+						itemsHandled++;
+						if (countUsers === itemsHandled) {
+							send_response(result);
+						}
+					}
+				});
             });
         } else {
             ws.send(Response.socket('friends', {friends: []}));
