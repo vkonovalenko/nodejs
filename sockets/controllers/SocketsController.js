@@ -655,7 +655,7 @@ class SocketsController {
                 let formattedUser = {};
                 users.forEach(function (user, k) {
                     formattedUser = user.toJSON();
-                    formattedUser.isOnline = false;
+                    formattedUser.isOnline = (Socket.clients(user.id)) ? true : false;
                     formattedUser.isHidden = false;
                     formattedUser.distance = "";
                     
