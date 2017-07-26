@@ -655,14 +655,14 @@ class SocketsController {
                 let formattedUser = {};
                 users.forEach(function (user, k) {
                     formattedUser = user.toJSON();
-                    formattedUser.isOnline = (Socket.clients(user.id)) ? true : false;
-                    formattedUser.isHidden = false;
+                    formattedUser.hasOnline = (Socket.clients(user.id)) ? true : false;
+                    formattedUser.hasHidden = false;
                     formattedUser.distance = "";
                     
                     if (Helper.isJson(ws.hiddenFriends)) {
                         let hiddenFriends = JSON.parse(ws.hiddenFriends);
                         if (Helper.inArray(formattedUser.id, hiddenFriends)) {
-                            formattedUser.isHidden = true;
+                            formattedUser.hasHidden = true;
                         }
                     }
 					
@@ -1005,7 +1005,7 @@ module.exports.SocketsController = SocketsController;
  * 
  * 7)
  * {"command": "friends"}
- * {"command":"friends","data":{"friends":[{"id":6,"avatar":null,"nickName":"22","wasOnline":null,"isOnline":false,"isHidden":true},{"id":5,"avatar":null,"nickName":"11","wasOnline":null,"isOnline":false,"isHidden":false}]},"message":""}
+ * {"command":"friends","data":{"friends":[{"id":6,"avatar":null,"nickName":"22","wasOnline":null,"hasOnline":false,"isHidden":true},{"id":5,"avatar":null,"nickName":"11","wasOnline":null,"hasOnline":false,"isHidden":false}]},"message":""}
  * 
  * 8)
  * {"command": "request_meeting", "data": {"userId": "5"}}
