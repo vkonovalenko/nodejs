@@ -571,7 +571,7 @@ class SocketsController {
                     const sha1 = require('sha1');
                     if (App.sha1(data.password) === user.password) {
                         Socket.authorize(ws, user);
-                        Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
+                        Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true});
                         
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
@@ -625,7 +625,7 @@ class SocketsController {
 			}).then(function(user) {
 				if(user) {
 					Socket.authorize(ws, user);
-					Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
+					Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true});
 					ws.send(Response.socket('relogined', {result: true}));
 				} else {
 					ws.send(Response.socket('relogined', {result: false}));
