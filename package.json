@@ -23,7 +23,8 @@
     "uuid": "*",
     "sha1": "*",
     "pg": "*",
-    "node-pushnotifications": "*"
+    "node-pushnotifications": "*",
+	"moment": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
