@@ -10,6 +10,8 @@ class Auth {
         }
         App.i18n().setLocale(lang);
         
+		App.lang = lang;
+		
         return new Promise(function(resolve, reject) {
             if (Socket.isLogined(ws)) {
                 resolve(true);

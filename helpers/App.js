@@ -15,6 +15,7 @@ App.redis_geo_module = null;
 App.sha1_module = null;
 App.formatter_module = null;
 App.push_module = null;
+App.lang = null;
 
 App.init = function() {
     this.app();

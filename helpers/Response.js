@@ -1,13 +1,21 @@
 "use strict";
 
+var moment = require("moment");
+
 /*
  * search needle value in haystack
  */
 function post_process(haystack) {
+	
     if (typeof haystack === 'object' && haystack !== null) {
         Object.keys(haystack).forEach(function(key) {
             if (typeof haystack[key] === 'object' && haystack[key] !== null) {
-                return post_process(haystack[key]);
+				if (key === 'wasOnline') {
+					 moment.locale(App.lang);
+					haystack[key] = moment(haystack[key], "YYYY-MM-DD H:i:s").fromNow();
+				} else {
+					return post_process(haystack[key]);
+				}
             }
             if (haystack[key] === null) {
                 haystack[key] = '';
@@ -18,7 +26,7 @@ function post_process(haystack) {
             } else if (haystack[key] instanceof Array) {
                 return post_process(haystack[key]);
             } else {
-                
+				
             }
         });
     }
