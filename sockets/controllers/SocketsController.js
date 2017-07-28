@@ -634,6 +634,51 @@ class SocketsController {
 		}
     }
 	
+	static friendsRequests(ws, data) {
+		if (ws.user_id) {
+			const user = Socket.clients(ws.user_id);
+			
+			const userAttributes = ['id', 'avatar', 'nickName', 'firstName', 'lastName', 'wasOnline', 'meetsCount', 'avatar'];
+			
+			let result = [];
+			
+			if (user.requestsFrom) {
+				const query = {
+						attributes: userAttributes,
+					where: {
+						id: {in: user.requestsFrom}
+					},
+					order: [
+						['createdAt', 'ASC']
+					]
+				};
+				let formattedUser = null;
+				Model.get('User').findAll(query).then( function(users) {
+					users.forEach(function (user, k) {
+						formattedUser = user.toJSON();
+						formattedUser.hasOnline = (Socket.clients(user.id)) ? true : false;
+						formattedUser.hasHidden = false;
+						formattedUser.distance = "";
+
+						if (Helper.isJson(ws.hiddenFriends)) {
+							let hiddenFriends = JSON.parse(ws.hiddenFriends);
+							if (Helper.inArray(formattedUser.id, hiddenFriends)) {
+								formattedUser.hasHidden = true;
+							}
+						}
+
+						result.push(formattedUser);
+					});
+					console.log(11111);
+					ws.send(Response.socket('requests_from', {friends: result}));
+				});
+			} else {
+				console.log(22222);
+				ws.send(Response.socket('requests_from', {friends: result}));
+			}
+		}
+	}
+	
     static friends(ws, data) {
         const friends = ws.friends;
         if (friends.length) {
