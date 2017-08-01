@@ -8,6 +8,7 @@ App.db_module = null;
 App.sequelize_module = null;
 App.events_module = null;
 App.app_module = null;
+App.app_http_module = null;
 App.express_ws_module = null;
 App.handler_module = null;
 App.redis_module = null;
@@ -29,7 +30,7 @@ App.listen = function() {
     this.handler_module.listenSockets();
     this.handler_module.listenHttp();
 	
-//    this.app().listen(Config.get('port_http'));
+    this.appHttp().listen(Config.get('port_http'));
 	this.app().listen(Config.get('port'));
 };
 
@@ -122,6 +123,14 @@ App.app = function() {
         this.app_module = express();
     }
     return this.app_module;
+};
+
+App.appHttp = function() {
+    if (this.app_http_module === null) {
+        const express = require('express');
+        this.app_http_module = express();
+    }
+    return this.app_http_module;
 };
 
 App.expressWs = function() {

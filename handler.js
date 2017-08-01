@@ -48,12 +48,12 @@ Handler.listenHttp = function() {
             for (let j = 0; j < middlewares[routes[i].url].length; j++) {
                 middleware = Handler.http_middlewares[middlewares[routes[i].url][j]];
                 // attach middleware
-                App.app().use(routes[i].url, middleware);
+                App.appHttp().use(routes[i].url, middleware);
                 middleware = null;
             }
         }
         // bind controller/action
-        App.app().post(routes[i].url, upload.any(), routesControllers[handlerArr[0]][handlerArr[1]]);
+        App.appHttp().post(routes[i].url, upload.any(), routesControllers[handlerArr[0]][handlerArr[1]]);
     }
 };
 
