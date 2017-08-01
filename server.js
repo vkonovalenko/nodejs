@@ -32,7 +32,7 @@ require('./http/crons/setMeetingLocation');
 
 console.log(__dirname + '/public/uploads');
 
-App.app().use(express.static(__dirname + '/public/uploads'));
+App.appHttp().use(express.static(__dirname + '/public/uploads'));
 
 /*
  * Listen port
