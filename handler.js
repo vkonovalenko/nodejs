@@ -8,7 +8,7 @@ Handler.sockets_middlewares = {};
 Handler.http_middlewares = {};
 
 Handler.listenHttp = function() {
-	let multer  = require('multer')
+	let multer  = require('multer');
 	let upload = multer();
     const httpRoutes = require(__root_dir + '/http/routes/routes');
     const routes = httpRoutes.routes;
