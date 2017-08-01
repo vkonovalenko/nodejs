@@ -1,7 +1,7 @@
 "use strict";
 
 const Auth = function (req, res, next) {
-    req = req.body;
+    req = req.query;
     if (Helper.isVar(req.api_token)) {
         Model.get('User').findOne({
           where: {token: req.api_token}

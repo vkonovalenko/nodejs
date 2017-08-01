@@ -8,6 +8,8 @@ Handler.sockets_middlewares = {};
 Handler.http_middlewares = {};
 
 Handler.listenHttp = function() {
+	let multer  = require('multer')
+	let upload = multer();
     const httpRoutes = require(__root_dir + '/http/routes/routes');
     const routes = httpRoutes.routes;
     const middlewares = httpRoutes.middlewares;
@@ -39,7 +41,7 @@ Handler.listenHttp = function() {
             }
         }
         // bind controller/action
-        App.app().post(routes[i].url, routesControllers[handlerArr[0]][handlerArr[1]]);
+        App.app().post(routes[i].url, upload.array(), routesControllers[handlerArr[0]][handlerArr[1]]);
     }
 };
 

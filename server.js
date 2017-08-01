@@ -20,7 +20,6 @@ global.Seq = App.Sequelize();
 require('./http/middlewares/app/Cors.js');
 require('./http/middlewares/app/Limiter.js');
 require('./http/middlewares/app/BodyParser.js');
-require('./http/middlewares/app/FileUpload.js');
 
 /*
  * Crons
