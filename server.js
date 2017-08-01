@@ -1,5 +1,7 @@
 "use strict";
 
+const express = require('express');
+
 global.__root_dir = __dirname;
 global.Helper = require('./helpers/Helper').Helper;
 global.Config = require('./helpers/Config').Config;
@@ -27,6 +29,10 @@ require('./http/middlewares/app/BodyParser.js');
 require('./http/crons/updateUsersOnline');
 require('./http/crons/setLocationRequest');
 require('./http/crons/setMeetingLocation');
+
+console.log(__dirname + '/public/uploads');
+
+App.app().use(express.static(__dirname + '/public/uploads'));
 
 /*
  * Listen port

@@ -9,7 +9,7 @@ const routes = [
 ];
 
 const middlewares = {
-    '/users/upload_photo': ['Auth']
+	
 };
 
 module.exports.routes = routes;

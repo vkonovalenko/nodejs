@@ -9,7 +9,19 @@ Handler.http_middlewares = {};
 
 Handler.listenHttp = function() {
 	let multer  = require('multer');
-	let upload = multer();
+	
+	const uuidV4 = require('uuid/v4');
+	const fileName = uuidV4();
+	const storage = multer.diskStorage({
+		destination: function (req, file, cb) {
+			cb(null, 'public/uploads');
+		},
+		filename: function (req, file, cb) {
+			cb(null, fileName + '.' + file.originalname.split(".").pop().toLowerCase());
+		}
+	});
+	
+	let upload = multer({ storage: storage });
     const httpRoutes = require(__root_dir + '/http/routes/routes');
     const routes = httpRoutes.routes;
     const middlewares = httpRoutes.middlewares;
@@ -41,7 +53,7 @@ Handler.listenHttp = function() {
             }
         }
         // bind controller/action
-        App.app().post(routes[i].url, upload.array(), routesControllers[handlerArr[0]][handlerArr[1]]);
+        App.app().post(routes[i].url, upload.any(), routesControllers[handlerArr[0]][handlerArr[1]]);
     }
 };
 

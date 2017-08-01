@@ -23,13 +23,14 @@ App.init = function() {
 };
 
 App.listen = function() {
-//    this.app().listen(Config.get('port'));
-    this.app().listen(Config.get('port_http'));
     if (this.handler_module === null) {
         this.handler_module = require(__root_dir + '/handler').Handler;
     }
     this.handler_module.listenSockets();
     this.handler_module.listenHttp();
+	
+//    this.app().listen(Config.get('port_http'));
+	this.app().listen(Config.get('port'));
 };
 
 App.validator = function() {
