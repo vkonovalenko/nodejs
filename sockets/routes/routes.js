@@ -21,6 +21,8 @@ const routes = {
     delete_friend: 'SocketsController.deleteFriend',
 
     update_profile: 'SocketsController.updateProfile',
+    update_photos: 'SocketsController.updatePhotos',
+    set_avatar: 'SocketsController.setAvatar',
     update_password: 'SocketsController.updatePassword',
     update_profile_bool: 'SocketsController.updateProfileBool',
     save_files: 'SocketsController.saveFiles',
@@ -45,6 +47,8 @@ const middlewares = {
     delete_friend: ['Auth'],
     
     update_profile: ['Auth'],
+    update_photos: ['Auth'],
+    set_avatar: ['Auth'],
     update_password: ['Auth'],
     update_profile_bool: ['Auth'],
     save_files: ['Auth'],

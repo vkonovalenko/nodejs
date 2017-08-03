@@ -61,6 +61,18 @@ class SocketsController {
         }
     }
     
+	static updatePhotos(ws, data) {
+		if (Helper.isVar(data.photo_ids && data.action)) {
+			
+		}
+	}
+
+	static setAvatar(ws, data) {
+		if (Helper.isVar(data.photo_id)) {
+			
+		}
+	}
+	
     static updateProfileBool(ws, data) {
         let updateData = {};
         const keys = ['allowFriends', 'allowRandom', 'pushesEnabled'];
