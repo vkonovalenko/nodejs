@@ -10,14 +10,9 @@ Handler.http_middlewares = {};
 Handler.listenHttp = function() {
 	let multer  = require('multer');
 	
-	const uuidV4 = require('uuid/v4');
-	const fileName = uuidV4();
 	const storage = multer.diskStorage({
 		destination: function (req, file, cb) {
 			cb(null, 'public/uploads');
-		},
-		filename: function (req, file, cb) {
-			cb(null, fileName + '.' + file.originalname.split(".").pop().toLowerCase());
 		}
 	});
 	

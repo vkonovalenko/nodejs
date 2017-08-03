@@ -32,7 +32,9 @@ class UserController {
 					if (request.files.length) {
 						const ext = request.files[0].originalname.split(".").pop().toLowerCase();
 						if (Helper.inArray(ext, UserController.exts())) {
-							const fileName = request.files[0].filename;
+							let uuidV4 = require('uuid/v4');
+							const fileName = uuidV4() + '.' + request.files[0].originalname.split(".").pop().toLowerCase();
+							
 							const src = "/" + fileName;
 							let file = {src: src, userId: user.id};
 							Model.get('UploadedFile').create(file).then(function(created_file) {
