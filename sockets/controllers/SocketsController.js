@@ -804,8 +804,6 @@ class SocketsController {
                     result.push(formattedUser);
                 });
 				
-				console.log(result);
-				
 				const countUsers = result.length;
 				let itemsHandled = 0;
 				let friend = null;
