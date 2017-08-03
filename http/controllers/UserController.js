@@ -21,7 +21,9 @@ class UserController {
 	
 //    const uuidV4 = require('uuid/v4');
     static uploadPhoto(request, response) {
+		console.log('UPLOAD ACTION');
 		let req = request.query;
+		console.log(req);
 		if (Helper.isVar(req.api_token)) {
 			Model.get('User').findOne({
 			  where: {token: req.api_token}
@@ -36,7 +38,7 @@ class UserController {
 							Model.get('UploadedFile').create(file).then(function(created_file) {
 								let formatted = {
 									id: created_file.id,
-									src: created_file.src
+									src: Config.get('image_url') + created_file.src
 								};
 								response.send(Response.http(formatted, 'file_uploaded'));
 							}, function(error) {
