@@ -22,6 +22,7 @@ const routes = {
 
     update_profile: 'SocketsController.updateProfile',
     update_photos: 'SocketsController.updatePhotos',
+    get_photos: 'SocketsController.getPhotos',
     set_avatar: 'SocketsController.setAvatar',
     update_password: 'SocketsController.updatePassword',
     update_profile_bool: 'SocketsController.updateProfileBool',
@@ -48,6 +49,7 @@ const middlewares = {
     
     update_profile: ['Auth'],
     update_photos: ['Auth'],
+    get_photos: ['Auth'],
     set_avatar: ['Auth'],
     update_password: ['Auth'],
     update_profile_bool: ['Auth'],

@@ -26,7 +26,9 @@ function post_process(haystack) {
             } else if (haystack[key] instanceof Array) {
                 return post_process(haystack[key]);
             } else {
-				
+				if (key === 'avatar') {
+					haystack[key] = Config.get('image_url') + haystack[key];
+				}
             }
         });
     }

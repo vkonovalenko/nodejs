@@ -62,14 +62,92 @@ class SocketsController {
     }
     
 	static updatePhotos(ws, data) {
-		if (Helper.isVar(data.photo_ids && data.action)) {
-			
+		if (Helper.isVar(data.photo_ids) && Helper.isVar(data.action)) {
+			if (Helper.inArray(data.action, ['add', 'delete'])) {
+				Model.get('UploadedFile').findAll({
+				where: {
+					id: {in: data.photo_ids},
+					userId: ws.user_id
+				}
+            }).then(function (uploadedFiles) {
+				if (data.action == 'add') {
+					if (uploadedFiles.length) {
+						uploadedFiles.forEach(function (file, k) {
+							Model.get('UserPhoto').create({src: file.src, userId: ws.user_id});
+						});
+
+						Model.get('UploadedFile').destroy({
+							where: {
+								id: {in: data.photo_ids}
+							}
+						});
+						
+						Model.get('UserPhoto').findAll({
+							where: {
+								userId: ws.user_id
+							}
+						}).then(function (userPhotos) {
+							let photos = [];
+							userPhotos.forEach(function (photo, k) {
+								photos.push({
+									id: photo.id,
+									src: Config.get('image_url') + photo.src
+								});
+							});
+							ws.send(Response.socket('photos', {photos: photos}));
+						});
+						
+					}
+				} else if (data.action == 'delete') {
+					Model.get('UserPhoto').destroy({
+						where: {
+							id: {in: data.photo_ids}
+						}
+					});
+				}
+            });
+			}
 		}
 	}
 
+	static getPhotos(ws, data) {
+		let userId = ws.user_id;
+		if (Helper.isVar(data.user_id)) {
+			userId = data.user_id;
+		}
+		
+		Model.get('UserPhoto').findAll({
+			where: {
+				userId: userId
+			}
+		}).then(function (userPhotos) {
+			let photos = [];
+			userPhotos.forEach(function (photo, k) {
+				photos.push({
+					id: photo.id,
+					src: Config.get('image_url') + photo.src
+				});
+			});
+			ws.send(Response.socket('photos', {photos: photos}));
+		});
+	}
+
+	//@TODO: send messages to all online friends when avatar changing
+	// Add default avatar image in settings
 	static setAvatar(ws, data) {
 		if (Helper.isVar(data.photo_id)) {
-			
+			Model.get('UserPhoto').findOne({
+				where: {
+					userId: ws.user_id,
+					id: data.photo_id
+				}
+			}).then(function (userPhoto) {
+				if (userPhoto) {
+					ws.avatar = userPhoto.src;
+					Model.get('User').update({avatar: userPhoto.src}, {where: {id: ws.user_id}});
+				}
+				ws.send(Response.socket('avatar', {avatar: ws.avatar}));
+			});
 		}
 	}
 	

@@ -4,6 +4,8 @@ const settings = {
 	port: 8002,
 	port_http: 8000,
 	
+	image_url: 'http://findmeapi.com:8000',
+	
 	time_online_expires: 180000, //180 sec, addition 000 cuz miliseconds
 	meeting_expired: 1800000, // 30 min
 	near_push_expired: 60,
