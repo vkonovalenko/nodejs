@@ -83,7 +83,7 @@ class Socket {
     }
     
     static sendToFriends(ws, command, data) {
-        if (ws.friends) {
+        if (Helper.isVar(ws.friends)) {
             let friend = null;
             ws.friends.forEach(function(friendId) {
                 friend = Socket.clients(friendId);
