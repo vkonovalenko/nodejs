@@ -23,7 +23,7 @@ class UserController {
     static uploadPhoto(request, response) {
 		console.log('UPLOAD ACTION');
 		let req = request.query;
-		console.log(req);
+		console.log(request);
 		if (Helper.isVar(req.api_token)) {
 			Model.get('User').findOne({
 			  where: {token: req.api_token}
@@ -31,9 +31,17 @@ class UserController {
 				if(user) {
 					if (request.files.length) {
 						const ext = request.files[0].originalname.split(".").pop().toLowerCase();
+						const path = request.files[0].path;
 						if (Helper.inArray(ext, UserController.exts())) {
 							let uuidV4 = require('uuid/v4');
-							const fileName = uuidV4() + '.' + request.files[0].originalname.split(".").pop().toLowerCase();
+							const fileName = uuidV4() + '.' + ext;
+							
+							let fs = require('fs');
+							fs.rename(Config.get('app_path') + path, Config.get('app_path') + 'public/uploads/' + fileName, function(err) {
+								if ( err ) {
+									console.log('ERROR: ' + err);
+								}
+							});
 							
 							const src = "/" + fileName;
 							let file = {src: src, userId: user.id};

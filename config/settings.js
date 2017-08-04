@@ -4,6 +4,7 @@ const settings = {
 	port: 8002,
 	port_http: 8000,
 	
+	app_path: '/home/dev/sites/findme/',
 	image_url: 'http://findmeapi.com:8000',
 	
 	time_online_expires: 180000, //180 sec, addition 000 cuz miliseconds
