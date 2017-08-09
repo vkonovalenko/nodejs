@@ -45,11 +45,25 @@ class UserController {
 							
 							const src = "/" + fileName;
 							let file = {src: src, userId: user.id};
-							Model.get('UploadedFile').create(file).then(function(created_file) {
+							Model.get('UserPhoto').create(file).then(function(created_file) {
 								let formatted = {
 									id: created_file.id,
 									src: Config.get('image_url') + created_file.src
 								};
+								
+								if(Helper.isVar(req.avatar) == true) {
+									
+									let ws = Socket.clients(user.id);
+									if (ws) {
+										console.log('WS WORKS!!!!!');
+										ws.avatar = created_file.src;
+									} else {
+										console.log('Cant find ws...');
+									}
+									
+									Model.get('User').update({avatar: created_file.src}, {where: {id: user.id}});
+								}
+								
 								response.send(Response.http(formatted, 'file_uploaded'));
 							}, function(error) {
 								console.log(error);
@@ -61,7 +75,6 @@ class UserController {
 					} else {
 						response.send(Response.http({}, 'no_files_to_upload'));
 					}
-//					response.send(Response.http({}, 'no_files_to_upload'));
 				} else {
 					response.send(Response.http({}, 'do_login', 'Неправильный логин или пароль.'));
 				}
