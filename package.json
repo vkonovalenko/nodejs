@@ -24,7 +24,8 @@
     "sha1": "*",
     "pg": "*",
     "node-pushnotifications": "*",
-	"moment": "*"
+	"moment": "*",
+	"async": "*"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

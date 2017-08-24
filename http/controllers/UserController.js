@@ -21,6 +21,14 @@ class UserController {
 	
 //    const uuidV4 = require('uuid/v4');
     static uploadPhoto(request, response) {
+		
+		async function executeParallelAsyncTasks () {  
+		  const [ valueA, valueB, valueC ] = await Promise.all([ functionA(), functionB(), functionC() ]);
+		  doSomethingWith(valueA);
+		  doSomethingElseWith(valueB);
+		  doAnotherThingWith(valueC);
+		};
+		
 		console.log('UPLOAD ACTION');
 		let req = request.query;
 		console.log(request);
@@ -30,48 +38,65 @@ class UserController {
 			}).then(function(user) {
 				if(user) {
 					if (request.files.length) {
-						const ext = request.files[0].originalname.split(".").pop().toLowerCase();
-						const path = request.files[0].path;
-						if (Helper.inArray(ext, UserController.exts())) {
-							let uuidV4 = require('uuid/v4');
-							const fileName = uuidV4() + '.' + ext;
-							
-							let fs = require('fs');
-							fs.rename(Config.get('app_path') + path, Config.get('app_path') + 'public/uploads/' + fileName, function(err) {
-								if ( err ) {
-									console.log('ERROR: ' + err);
-								}
-							});
-							
-							const src = "/" + fileName;
-							let file = {src: src, userId: user.id};
-							Model.get('UserPhoto').create(file).then(function(created_file) {
-								let formatted = {
-									id: created_file.id,
-									src: Config.get('image_url') + created_file.src
-								};
-								
-								if(Helper.isVar(req.avatar) == true) {
+						let uuidV4 = require('uuid/v4');
+						let fs = require('fs');
+						let ext = null;
+						let path = null;
+						let fileName = null;
+						let src = null;
+						let formattedFile = null;
+						let formattedFiles = [];
+						let filesLength = request.files.length - 1;
+						
+						function sendResponse(formattedFiles) {
+							console.log('-------------------------------');
+							console.log(formattedFiles);
+							response.send(Response.http(formattedFiles, 'files_uploaded'));
+						}
+						
+						request.files.forEach(function(file, i) {
+							ext = file.originalname.split(".").pop().toLowerCase();
+							path = file.path;
+
+							if (Helper.inArray(ext, UserController.exts())) {
+								fileName = uuidV4() + '.' + ext;
+								fs.rename(Config.get('app_path') + path, Config.get('app_path') + 'public/uploads/' + fileName, function(err) {
+									if ( err ) {
+										console.log('ERROR: ' + err);
+									}
+								});
+								src = "/" + fileName;
+								file = {src: src, userId: user.id};
+
+								Model.get('UserPhoto').create(file).then(function(created_file) {
+									formattedFile = {
+										id: created_file.id,
+										src: Config.get('image_url') + created_file.src
+									};
 									
-									let ws = Socket.clients(user.id);
-									if (ws) {
-										console.log('WS WORKS!!!!!');
-										ws.avatar = created_file.src;
-									} else {
-										console.log('Cant find ws...');
+									formattedFiles.push(formattedFile);
+									
+									if(Helper.isVar(req.avatar) == true) {
+										Model.get('User').update({avatar: created_file.src}, {where: {id: user.id}});
+										let ws = Socket.clients(user.id);
+										if (ws) {
+											console.log('AVATAR UPDATING.............');
+											ws.avatar = created_file.src;
+										}
 									}
 									
-									Model.get('User').update({avatar: created_file.src}, {where: {id: user.id}});
-								}
-								
-								response.send(Response.http(formatted, 'file_uploaded'));
-							}, function(error) {
-								console.log(error);
-								response.send(Response.http({}, 'file_uploading_error'));
-							});
-						} else {
-							response.send(Response.http({}, 'invalid_file_format'));
-						}
+									if (filesLength == i) {
+										sendResponse(formattedFiles);
+									}
+									
+								}, function(error) {
+									console.log(error);
+								});
+							} else {
+								response.send(Response.http({}, 'invalid_file_format'));
+							}
+						});
+						
 					} else {
 						response.send(Response.http({}, 'no_files_to_upload'));
 					}
