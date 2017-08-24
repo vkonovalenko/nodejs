@@ -3,8 +3,8 @@
  */
 const routes = [
     {
-        url: '/users/upload_photo',
-        handler: 'UserController.uploadPhoto'
+        url: '/users/upload_photos',
+        handler: 'UserController.uploadPhotos'
     }
 ];
 

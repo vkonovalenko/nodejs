@@ -20,7 +20,7 @@ class UserController {
 	}
 	
 //    const uuidV4 = require('uuid/v4');
-    static uploadPhoto(request, response) {
+    static uploadPhotos(request, response) {
 		
 		async function executeParallelAsyncTasks () {  
 		  const [ valueA, valueB, valueC ] = await Promise.all([ functionA(), functionB(), functionC() ]);
