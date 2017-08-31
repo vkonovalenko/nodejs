@@ -35,7 +35,7 @@ class Formatter {
 	static distance(distance) {
 		if (distance > 1000) {
 			distance = distance / 1000;
-			distance = distance.parseFloat(10, 2).toString() + ' ' + __('distance_km');
+			distance = parseFloat(distance, 10, 2).toString() + ' ' + __('distance_km');
 		} else {
 			distance = distance.toString() + ' ' + __('distance_m');
 		}
