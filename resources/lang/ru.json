@@ -18,5 +18,8 @@
 
     "user_not_found": "Пользователь не найден",
     "update_profile_error": "Не удалось обновить информацию профиля.",
-	"update_password_error": "Текущий пароль указан неверно."
+	"update_password_error": "Текущий пароль указан неверно.",
+	
+	"distance_m": "м",
+	"distance_km": "км"
 }

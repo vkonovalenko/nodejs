@@ -32,6 +32,16 @@ class Formatter {
         return response;
     }
     
+	static distance(distance) {
+		if (distance > 1000) {
+			distance = distance / 1000;
+			distance = distance.parseFloat(10, 2).toString() + ' ' + __('distance_km');
+		} else {
+			distance = distance.toString() + ' ' + __('distance_m');
+		}
+		return distance;
+	}
+	
 }
 
 module.exports.Formatter = Formatter;

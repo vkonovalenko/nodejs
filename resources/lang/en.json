@@ -18,5 +18,8 @@
 
     "user_not_found": "Пользователь не найден.",
     "update_profile_error": "Can not update profile information.",
-    "update_password_error": "Your old password is incorrect."
+    "update_password_error": "Your old password is incorrect.",
+	
+	"distance_m": "m",
+	"distance_km": "km"
 }

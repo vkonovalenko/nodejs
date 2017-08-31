@@ -30,6 +30,9 @@ class SetLocation {
 											if (sendedToFriends === false) {
 												distance = parseInt(location, 10);
 												distance = (isNaN(distance) || distance == 'NaN') ? "" : distance;
+												if (distance != "") {
+													distance = App.formatter().distance(distance);
+												}
 												Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true, distance: distance});
 												sendedToFriends = true;
 											}
