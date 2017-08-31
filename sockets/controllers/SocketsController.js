@@ -828,8 +828,13 @@ class SocketsController {
 					}
 					
 					withDistances.sort(compare);
+					for(let i = 0; i < withDistances.length; i++) {
+						if (!isNaN(withDistances[i].distance)) {
+							withDistances[i].distance = App.formatter().distance(withDistances[i].distance);
+						}
+					}
 					
-					result = withDistances.concat(emptyDistances)
+					result = withDistances.concat(emptyDistances);
 					
 					ws.send(Response.socket('friends', {friends: result}));
 				};
