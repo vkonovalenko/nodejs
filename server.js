@@ -26,7 +26,6 @@ require('./http/middlewares/app/BodyParser.js');
 /*
  * Crons
  */
-require('./http/crons/updateUsersOnline');
 require('./http/crons/setLocationRequest');
 require('./http/crons/setMeetingLocation');
 
