@@ -12,8 +12,15 @@ class Auth {
         
 		App.lang = lang;
 		
+		function updatePushToken(pushToken, user_id) {
+			if (pushToken) {
+				Model.get('User').update({pushToken: pushToken}, {where: {id: user_id}});
+			}
+		}
+		
         return new Promise(function(resolve, reject) {
             if (Socket.isLogined(ws)) {
+				updatePushToken(data.pushToken, ws.user_id);
                 resolve(true);
             } else {
                 if (Helper.isVar(data.api_token)) {
@@ -23,6 +30,7 @@ class Auth {
                         if(user) {
                             Socket.authorize(ws, user);
                             Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
+							updatePushToken(data.pushToken, user.id);
                             resolve(true);
                         } else {
                             ws.send('{"action": "do_login"}');
