@@ -51,7 +51,7 @@ class UserController {
 						function sendResponse(formattedFiles) {
 							console.log('-------------------------------');
 							console.log(formattedFiles);
-							response.send(Response.http(formattedFiles, 'files_uploaded'));
+							response.send(Response.http({photos: formattedFiles}, 'files_uploaded'));
 						}
 						
 						request.files.forEach(function(file, i) {
