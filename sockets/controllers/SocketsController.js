@@ -205,29 +205,28 @@ class SocketsController {
     
     static setLocation(ws, data) {
 		
-//		function testPush(user) {
-//			if (user.id == 11) {
-//				let pusher = require(__root_dir + '/helpers/Push').Push;
-//				
-//				const data = {
-//					title: 'New push notification', // REQUIRED 
-//					body: 'Powered by AppFeel', // REQUIRED 
-//				};
-//				
-//				pusher.send(user, data);
-//			}
-//		}
-//		
-//		
-//		Model.get('User').findOne({
-//		  where: {id: ws.user_id}
-//		}).then(function(user) {
-//			if(user) {
-//				console.log('user found');
-//				console.log('---------------------------');
-//				testPush(user);
-//			}
-//		});
+		function testPush(user) {
+			if (user.pushToken) {
+				let pusher = require(__root_dir + '/helpers/Push').Push;
+				
+				const data = {
+					title: 'New push notification', // REQUIRED 
+					body: 'Powered by AppFeel' // REQUIRED 
+				};
+				
+				pusher.send(user, data);
+			}
+		}
+		
+		
+		Model.get('User').findOne({
+		  where: {id: ws.user_id}
+		}).then(function(user) {
+			if(user) {
+				console.log('user found');
+				console.log('---------------------------');
+			}
+		});
 		
 		
         ws.send(Response.socket('coords_setted', {}));
