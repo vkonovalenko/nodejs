@@ -784,11 +784,9 @@ class SocketsController {
 
 						result.push(formattedUser);
 					});
-					console.log(11111);
 					ws.send(Response.socket('requests_from', {friends: result}));
 				});
 			} else {
-				console.log(22222);
 				ws.send(Response.socket('requests_from', {friends: result}));
 			}
 		}
