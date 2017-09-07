@@ -4,7 +4,6 @@ class SetLocation {
 
     handle(data, ws) {
         return new Promise(function (resolve, reject) {
-            let sendedToFriends = false;
             let distance = "";
             console.log('1___DISTANCE');
             if (data.lon && data.lat) {
@@ -34,6 +33,13 @@ class SetLocation {
                                             
                                             distance = parseInt(location, 10);
                                             distance = (isNaN(distance) || distance == 'NaN') ? "" : distance;
+											
+											if(distance && distance > 0 && distance <= parseInt(ws.pushRadius, 10)) {
+												Socket.friendNearPush(ws.user_id, friendOnline.user_id, distance);
+											}
+											
+//											Socket.friendNearPush(ws.user_id, client.user_id, item.distance);
+											
                                             if (distance != "") {
                                                 distance = App.formatter().distance(distance);
                                             }
@@ -47,28 +53,28 @@ class SetLocation {
                         }
 
                         // send notification to user if he has appeared near
-                        let client = null;
-                        App.geo().nearby(coords, parseInt(ws.pushRadius, 10), {
-                            withDistances: true
-                        }, function (err, locations) {
-                            if (!err) {
-                                if (locations.length > 0) {
-                                    locations.forEach(function (item, k) {
-                                        client = Socket.clients(item.key);
-                                        if (client) {
-                                            if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user_id
-                                                if (ws.friends.length && Helper.inArray(item.key, ws.friends) && client.allowFriends) {
-                                                    Socket.friendNearPush(ws.user_id, client.user_id, item.distance);
-                                                }
-                                            }
-                                        }
-                                    });
-                                }
-                            } else {
-								console.log('ERROR: ');
-								console.log(err);
-							}
-                        });
+//                        let client = null;
+//                        App.geo().nearby(coords, parseInt(ws.pushRadius, 10), {
+//                            withDistances: true
+//                        }, function (err, locations) {
+//                            if (!err) {
+//                                if (locations.length > 0) {
+//                                    locations.forEach(function (item, k) {
+//                                        client = Socket.clients(item.key);
+//                                        if (client) {
+//                                            if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user_id
+//                                                if (ws.friends.length && Helper.inArray(item.key, ws.friends) && client.allowFriends) {
+////                                                    Socket.friendNearPush(ws.user_id, client.user_id, item.distance);
+//                                                }
+//                                            }
+//                                        }
+//                                    });
+//                                }
+//                            } else {
+//								console.log('ERROR: ');
+//								console.log(err);
+//							}
+//                        });
                         // ------------
                         resolve(true);
                     } else {

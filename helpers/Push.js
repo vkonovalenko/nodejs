@@ -12,7 +12,7 @@ class Push {
     }
     
     static send(user, data) {
-		console.log('_________TRY TO SEND PUSH');
+		console.log('_________TRY TO SEND PUSH TO ' + user.nickName);
         if (user.deviceOs === 'android' && user.pushToken) {
             Push.__sendAndroid(data, user.pushToken);
         } else if (user.deviceOs === 'ios') {
