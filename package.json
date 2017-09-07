@@ -23,7 +23,7 @@
     "uuid": "*",
     "sha1": "*",
     "pg": "*",
-    "fcm-push": "*",
+    "node-pushnotifications": "*",
 	"moment": "*",
 	"async": "*"
   },
