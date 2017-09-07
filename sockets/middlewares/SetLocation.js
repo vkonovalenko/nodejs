@@ -48,7 +48,7 @@ class SetLocation {
 
                         // send notification to user if he has appeared near
                         let client = null;
-                        App.geo().nearby(coords, ws.pushRadius, {
+                        App.geo().nearby(coords, parseInt(ws.pushRadius, 10), {
                             withDistances: true
                         }, function (err, locations) {
                             if (!err) {
@@ -64,7 +64,10 @@ class SetLocation {
                                         }
                                     });
                                 }
-                            }
+                            } else {
+								console.log('ERROR: ');
+								console.log(err);
+							}
                         });
                         // ------------
                         resolve(true);

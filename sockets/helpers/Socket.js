@@ -107,12 +107,29 @@ class Socket {
             const redisKey = Socket.nearPushKey(receiverId, friendId);
             App.redis().get(redisKey, function (err, resp) {
                 if (!err) {
+					// no resp from redis - key for push expired and we can send another
                     let send = (!resp);
-                    App.redis().setex(redisKey, Config.get('near_push_expired'), Date.now());
                     if (send) {
-                        let message = __('friend_near_you');
-                        message = message.replace('{friend}', friend.nickName).replace('{distance}', distance);
-                        friend.send(Response.socket('friend_near', {}, message));
+						Model.get('User').findOne({
+						  where: {id: friendId}
+						}).then(function(user) {
+							if (user) {
+								
+								App.redis().setex(redisKey, Config.get('near_push_expired'), Date.now());
+								
+								let message = __('friend_near_you');
+								distance = parseInt(distance);
+								message = message.replace('{friend}', receiver.nickName).replace('{distance}', App.formatter().distance(distance));
+								let pusher = require(__root_dir + '/helpers/Push').Push;
+								const data = {
+									title: 'Jinger', // REQUIRED 
+									body: message // REQUIRED 
+								};
+								pusher.send(user, data);
+							}
+						});
+						
+                        // friend.send(Response.socket('friend_near', {}, message));
                     }
                 }
             });

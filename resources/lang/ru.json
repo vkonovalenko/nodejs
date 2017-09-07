@@ -14,7 +14,7 @@
     "meeting_user_offline": "Пользователь для встречи оффлайн.",
     "meeting_user_too_far": "Вы не можете создать встречу, пользователь слишком далеко.",
     "meeting_discarded": "Встреча была отменена.",
-    "friend_near_you": "Ваш друг {friend} рядом на расстоянии {distance} метров.",
+    "friend_near_you": "Ваш друг {friend} рядом на расстоянии {distance}.",
 
     "user_not_found": "Пользователь не найден",
     "update_profile_error": "Не удалось обновить информацию профиля.",
