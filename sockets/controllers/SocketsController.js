@@ -838,6 +838,27 @@ class SocketsController {
 				
 				let itemsHandled = 0;
 				
+
+				/**
+				 * how to work correctly with async cycles
+				 */
+				
+				/**
+				 * 
+				var async = require('async');
+				function addOne(number, callback) {
+				  process.nextTick(function () {
+					console.log(number);
+					callback(null, ++number);
+				  });
+				}
+				function done(error, result) {
+				  console.log("map completed. Error: ", error, " result: ", result);
+				}
+				async.map([1,2,3,4,5], addOne, done);
+				*/
+
+				
 				result.forEach(function (user2, k2) {
 					itemsHandled++;
 					friend = Socket.clients(user2.id);
