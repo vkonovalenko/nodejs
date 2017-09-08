@@ -805,7 +805,7 @@ class SocketsController {
 				const countUsers = result.length;
 				let friend = null;
 				
-				let send_response = function(result) {
+				let send_response = function(error, result) {
 					let emptyDistances = [];
 					let withDistances = [];
 					result.forEach(function(item, k) {
@@ -836,8 +836,6 @@ class SocketsController {
 					ws.send(Response.socket('friends', {friends: result}));
 				};
 				
-				let itemsHandled = 0;
-				
 
 				/**
 				 * how to work correctly with async cycles
@@ -856,34 +854,33 @@ class SocketsController {
 				  console.log("map completed. Error: ", error, " result: ", result);
 				}
 				async.map([1,2,3,4,5], addOne, done);
+				*
 				*/
 
-				
-				result.forEach(function (user2, k2) {
-					itemsHandled++;
-					friend = Socket.clients(user2.id);
-					if (friend) {
-						if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
-							// friends allowed and we are not hiding for this user
-							App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
-								if (!err) {
-									result[k2].distance = parseInt(location, 10);
-								}
-								if (countUsers === itemsHandled) {
-									send_response(result);
-								}
-							});
-						} else {
-							if (countUsers === itemsHandled) {
-								send_response(result);
+				let async = require('async');
+				function getDistance(user, callback) {
+					process.nextTick(function () {
+						console.log('---------------------user--------------');
+						console.log(user);
+						friend = Socket.clients(user.id);
+						if (friend) {
+							if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+								// friends allowed and we are not hiding for this user
+								App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
+									if (!err) {
+										user.distance = parseInt(location, 10);
+									}
+									callback(err, user);
+								});
+							} else {
+								callback(null, user);
 							}
+						} else {
+							callback(null, user);
 						}
-					} else {
-						if (countUsers === itemsHandled) {
-							send_response(result);
-						}
-					}
-				});
+					});
+				}
+				async.map(result, getDistance, send_response);
             });
         } else {
             ws.send(Response.socket('friends', {friends: []}));
