@@ -860,8 +860,6 @@ class SocketsController {
 				let async = require('async');
 				function getDistance(user, callback) {
 					process.nextTick(function () {
-						console.log('---------------------user--------------');
-						console.log(user);
 						friend = Socket.clients(user.id);
 						if (friend) {
 							if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
