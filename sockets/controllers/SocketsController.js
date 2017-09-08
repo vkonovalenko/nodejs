@@ -204,31 +204,6 @@ class SocketsController {
     }
     
     static setLocation(ws, data) {
-		
-		function testPush(user) {
-			if (user.pushToken) {
-				let pusher = require(__root_dir + '/helpers/Push').Push;
-				
-				const data = {
-					title: 'New push notification', // REQUIRED 
-					body: 'Powered by AppFeel' // REQUIRED 
-				};
-				
-				pusher.send(user, data);
-			}
-		}
-		
-		
-		Model.get('User').findOne({
-		  where: {id: ws.user_id}
-		}).then(function(user) {
-			if(user) {
-				console.log('user found');
-				console.log('---------------------------');
-			}
-		});
-		
-		
         ws.send(Response.socket('coords_setted', {}));
     }
     
@@ -828,7 +803,6 @@ class SocketsController {
                 });
 				
 				const countUsers = result.length;
-				let itemsHandled = 0;
 				let friend = null;
 				
 				let send_response = function(result) {
@@ -862,7 +836,10 @@ class SocketsController {
 					ws.send(Response.socket('friends', {friends: result}));
 				};
 				
+				let itemsHandled = 0;
+				
 				result.forEach(function (user2, k2) {
+					itemsHandled++;
 					friend = Socket.clients(user2.id);
 					if (friend) {
 						if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
@@ -871,19 +848,16 @@ class SocketsController {
 								if (!err) {
 									result[k2].distance = parseInt(location, 10);
 								}
-								itemsHandled++;
 								if (countUsers === itemsHandled) {
 									send_response(result);
 								}
 							});
 						} else {
-							itemsHandled++;
 							if (countUsers === itemsHandled) {
 								send_response(result);
 							}
 						}
 					} else {
-						itemsHandled++;
 						if (countUsers === itemsHandled) {
 							send_response(result);
 						}

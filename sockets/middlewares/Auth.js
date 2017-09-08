@@ -14,7 +14,10 @@ class Auth {
 		
 		function updatePushToken(pushToken, user_id) {
 			if (pushToken) {
-				Model.get('User').update({pushToken: pushToken}, {where: {id: user_id}});
+				let moment = require("moment");
+				let now = moment();
+				const dateFormatted = now.format('YYYY-MM-DD HH:mm:ss');
+				Model.get('User').update({pushToken: pushToken, wasOnline: dateFormatted}, {where: {id: user_id}});
 			}
 		}
 		
