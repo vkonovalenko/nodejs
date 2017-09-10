@@ -10,16 +10,16 @@ class Auth {
         }
         App.i18n().setLocale(lang);
         
-		App.lang = lang;
-		
-		function updatePushToken(pushToken, user_id) {
-			if (pushToken) {
-				let moment = require("moment");
-				let now = moment();
-				const dateFormatted = now.format('YYYY-MM-DD HH:mm:ss');
-				Model.get('User').update({pushToken: pushToken, wasOnline: dateFormatted}, {where: {id: user_id}});
-			}
-		}
+        App.lang = lang;
+
+        function updatePushToken(pushToken, user_id) {
+                if (pushToken) {
+                        let moment = require("moment");
+                        let now = moment();
+                        let dateFormatted = now.format('YYYY-MM-DD HH:mm:ss');
+                        Model.get('User').update({pushToken: pushToken, wasOnline: dateFormatted}, {where: {id: user_id}});
+                }
+        }
 		
         return new Promise(function(resolve, reject) {
             if (Socket.isLogined(ws)) {
@@ -33,7 +33,7 @@ class Auth {
                         if(user) {
                             Socket.authorize(ws, user);
                             Socket.sendToFriends(ws, 'friend_online', App.formatter().shortProfile(ws));
-							updatePushToken(data.pushToken, user.id);
+                            updatePushToken(data.pushToken, user.id);
                             resolve(true);
                         } else {
                             ws.send('{"action": "do_login"}');

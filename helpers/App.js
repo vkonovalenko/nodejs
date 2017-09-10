@@ -17,6 +17,7 @@ App.sha1_module = null;
 App.formatter_module = null;
 App.push_module = null;
 App.lang = null;
+App.moment_module = null;
 
 App.init = function() {
     this.app();
@@ -39,6 +40,14 @@ App.validator = function() {
         this.validator_module = require("validator");
     }
     return this.validator_module;
+};
+
+App.moment = function() {
+    if (this.moment_module === null) {
+        this.moment_module = require("moment");
+        this.moment_module.locale(this.lang);
+    }
+    return this.moment_module;
 };
 
 App.push = function() {
