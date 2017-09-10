@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>APP tests</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>
+            Number of active users:
+            <div id="clients">0</div>
+            
+            <br/>
+            
+            Commands:
+            <br />
+            <ul id="commands">
+                
+            </ul>
+        </div>
+    </body>
+    
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    
+<script type="text/javascript">
+        
+$( document ).ready(function() {
+    
+       // http://findmeapi.com:8000/test.html
+    
+       var clients = 0;
+
+        var users = [
+            {nickname: "krokodil", password: "123"},
+            {nickname: "natka", password: "123"},
+            {nickname: "koslavik2", password: "123"},
+            {nickname: "cheburator", password: "123"},
+            {nickname: "vasidze", password: "123"},
+            {nickname: "ццц", password: "123"},
+            {nickname: "petro", password: "123"},
+            {nickname: "elena_bond", password: "123"},
+            {nickname: "stasy", password: "123"},
+            {nickname: "lera_ne", password: "123"},
+            {nickname: "vpupx", password: "123"},
+            {nickname: "seriojja", password: "123"},
+            {nickname: "grozniy", password: "123"},
+            {nickname: "grozniy", password: "123"},
+            {nickname: "uly_sidr", password: "123"},
+            {nickname: "bez_evgen", password: "123"},
+            {nickname: "marina_cat", password: "123"},
+            {nickname: "marina_cat", password: "123"},
+            {nickname: "agent007", password: "123"},
+            {nickname: "malinka", password: "123"},
+            {nickname: "allka", password: "123"},
+            {nickname: "serjj", password: "123"},
+        ];
+
+        var randomCommands = [
+            {command: 'friends'},
+            {command: 'get_photos'},
+            {command: 'update_profile', "data": {phone: parseInt(getRandomNumber(111111, 99999999), 10).toString()}},
+            {command: 'unread_messages'},
+            {command: 'profile'},
+            {command: 'meetings'},
+            {command: 'get_locations', data: {radius: 900000, lat: getRandomLat(), lon: getRandomLon()}}
+        ];
+
+        function getRandomNumber(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+
+        function getRandomCoords() {
+            return {lat: getRandomLat(), lon: getRandomLon()};
+        }
+
+        function getRandomLat() {
+            return getRandomNumber(50, 52);
+        }
+
+        function getRandomLon() {
+            return getRandomNumber(36, 37);
+        }
+
+        function getParam(id) {
+            return document.getElementById(id);
+        }
+
+        function newConnection() {
+            return new WebSocket("ws://findmeapi.com:8002/sockets");
+        }
+
+        function sendRequest(ws, command, data) {
+            data = {command: command, data: data};
+            var dataToSend = JSON.stringify(data);
+            ws.send(dataToSend);
+            var $commands = $('#commands');
+            if ($commands.length > 50) {
+                $commands.html('');
+            }
+            $('#commands').prepend('<li>' + dataToSend + '</li>');
+
+            ++clients;
+            $('#clients').html(clients);
+        }
+
+        function login(login, password) {
+            var ws = newConnection();
+            ws.onopen = function (evt) {
+                sendRequest(ws, 'login', {nickName: login, password: password});
+            };
+            ws.onmessage = function(msg) {
+              if (msg.type == 'message') {
+                  var data = JSON.parse(msg.data);
+                  if (data.action == 'do_set_location') {
+                      var lat = getRandomNumber(50, 52);
+                      var lon = getRandomNumber(36, 37);
+                      sendRequest(ws, 'set_location', getRandomCoords());
+                  }
+              }
+            };
+            ws.onclose = function(evt) {
+                --clients;
+                $('#clients').html(clients);
+            };
+        }
+
+        for (var i = 0; i < users.length; i++) {
+            var res = login(users[i].nickname, users[i].password);
+        }
+});
+    
+ 
+    
+</script>
+    
+</html>
