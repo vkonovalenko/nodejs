@@ -7,16 +7,19 @@
     </head>
     <body>
         <div>
-            Number of active users:
-            <div id="clients">0</div>
-            
-            <br/>
-            
-            Commands:
+            Number of active users: <span id="clients">0</span> <br />
+            Requests total count: <span id="requests_ct">0</span> <br />
+            Responses total count: <span id="responces_ct">0</span> <br />
             <br />
-            <ul id="commands">
-                
-            </ul>
+            
+<!--            Responses:
+            <br />
+            <ul id="responses"></ul>-->
+            
+            <br />
+            Requests:
+            <br />
+            <ul id="commands"></ul>
         </div>
     </body>
     
@@ -27,6 +30,17 @@
 $( document ).ready(function() {
     
        // http://findmeapi.com:8000/test.html
+    
+       var maxCommandsLength = 50;
+       var maxResponsesLength = 50;
+       
+       var responsesCount = 0;
+       var requestsCount = 0;
+    
+       var $requestsCount = $('#requests_ct');
+       var $responcesCount = $('#responces_ct');
+       var $responses = $('#responses');
+       var $commands = $('#commands');
     
        var clients = 0;
 
@@ -58,12 +72,14 @@ $( document ).ready(function() {
         var randomCommands = [
             {command: 'friends'},
             {command: 'get_photos'},
-            {command: 'update_profile', "data": {phone: parseInt(getRandomNumber(111111, 99999999), 10).toString()}},
-            {command: 'unread_messages'},
+            {command: 'update_profile', data: {phone: parseInt(getRandomNumber(111111, 99999999), 10).toString()}},
             {command: 'profile'},
-            {command: 'meetings'},
             {command: 'get_locations', data: {radius: 900000, lat: getRandomLat(), lon: getRandomLon()}}
         ];
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
         function getRandomNumber(min, max) {
           return Math.random() * (max - min) + min;
@@ -81,10 +97,6 @@ $( document ).ready(function() {
             return getRandomNumber(36, 37);
         }
 
-        function getParam(id) {
-            return document.getElementById(id);
-        }
-
         function newConnection() {
             return new WebSocket("ws://findmeapi.com:8002/sockets");
         }
@@ -93,40 +105,83 @@ $( document ).ready(function() {
             data = {command: command, data: data};
             var dataToSend = JSON.stringify(data);
             ws.send(dataToSend);
-            var $commands = $('#commands');
-            if ($commands.length > 50) {
+            var commandsLen = $commands.find('li').length;
+            if (commandsLen > maxCommandsLength) {
                 $commands.html('');
+                commandsLen = 0;
             }
-            $('#commands').prepend('<li>' + dataToSend + '</li>');
-
-            ++clients;
-            $('#clients').html(clients);
+            
+            ++requestsCount;
+            $requestsCount.html(requestsCount);
+            
+            $commands.prepend('<li>' + (commandsLen + 1).toString() + dataToSend + '</li>');
         }
 
         function login(login, password) {
             var ws = newConnection();
             ws.onopen = function (evt) {
                 sendRequest(ws, 'login', {nickName: login, password: password});
+                ++clients;
+                $('#clients').html(clients);
             };
             ws.onmessage = function(msg) {
               if (msg.type == 'message') {
+                  
+                  ++responsesCount;
+                  $responcesCount.html(responsesCount);
+                  
                   var data = JSON.parse(msg.data);
                   if (data.action == 'do_set_location') {
                       var lat = getRandomNumber(50, 52);
                       var lon = getRandomNumber(36, 37);
                       sendRequest(ws, 'set_location', getRandomCoords());
+                  } else {
+                      var responsesLen = $responses.find('li').length;
+                      if (responsesLen > maxResponsesLength) {
+                          $responses.html('');
+                      }
+//                      $responses.prepend('<li>' + (responsesLen + 1).toString() + msg.data + '</li>');
                   }
+              } else {
+                  console.log(msg);
               }
             };
             ws.onclose = function(evt) {
                 --clients;
                 $('#clients').html(clients);
             };
+            ws.onerror = function(evt) {
+                console.log('error!');
+            };
+            
+            return ws;
         }
 
+        var connections = [];
+
         for (var i = 0; i < users.length; i++) {
-            var res = login(users[i].nickname, users[i].password);
+            var ws = login(users[i].nickname, users[i].password);
+            connections.push(ws);
         }
+        
+        
+        function runRandomCommand() {
+          if (requestsCount < 5000) {
+          var connectionsCount = connections.length;
+          var commandsCount = randomCommands.length;
+          
+          var randomConnection = connections[getRandomInt(0, connectionsCount - 1)];
+          
+          var randomCommand = randomCommands[getRandomInt(0, commandsCount - 1)];
+          var requestData = (randomCommand.data) ? randomCommand.data : {};
+          
+          if (randomConnection.readyState == 1) {
+              sendRequest(randomConnection, randomCommand.command, requestData);
+          }
+          }
+        }
+        setInterval(runRandomCommand, 1);
+        
 });
     
  
