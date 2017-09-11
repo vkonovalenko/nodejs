@@ -643,6 +643,8 @@ class SocketsController {
         });
     }
     
+	//@TODO: check for property readyState == 1 before every ws.send()
+	
     static login(ws, data) {
         if (!data.password) {
             ws.send(Response.socket('', {}, __('password_empty')));
