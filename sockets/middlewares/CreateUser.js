@@ -45,17 +45,17 @@ class CreateUser {
                             if (count2 <= 0) {
                                 resolve(true);
                             } else {
-                                ws.send(Response.socket('signup_error', {}, __('email_taken')));
+                                Response.socket(ws, 'signup_error', {}, __('email_taken'));
                                 reject();
                             }
                         });
                     } else {
-                        ws.send(Response.socket('signup_error', {}, __('nickname_taken')));
+                        Response.socket(ws, 'signup_error', {}, __('nickname_taken'));
                         reject();
                     }
                 });
             } else {
-                ws.send(Response.socket('signup_error', {}, errors.pop()));
+                Response.socket(ws, 'signup_error', {}, errors.pop());
                 reject();
             }
         });

@@ -7,7 +7,7 @@ class SocketsController {
     static getProfile(ws, data) {
         Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: false}}).then(function(count) {
             let response = App.formatter().userProfile(ws, count);
-            ws.send(Response.socket('profile', response));
+            Response.socket(ws, 'profile', response);
         });
     }
     
@@ -35,7 +35,7 @@ class SocketsController {
             });
             
             promiseNickname.catch(function(err) {
-                ws.send(Response.socket('', {}, __('nickname_taken')));
+                Response.socket(ws, '', {}, __('nickname_taken'));
             });
             
             let promiseEmail = new Promise(function(resolve, reject) {
@@ -49,14 +49,14 @@ class SocketsController {
             });
             
             promiseEmail.catch(function(err) {
-                ws.send(Response.socket('', {}, __('email_taken')));
+                Response.socket(ws, '', {}, __('email_taken'));
             });
             
             Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
                 Socket.update(ws.user_id, updateData);
-                ws.send(Response.socket('profile_updated', App.formatter().userProfile(ws, 0)));
+                Response.socket(ws, 'profile_updated', App.formatter().userProfile(ws, 0));
             }, function(err) {
-                ws.send(Response.socket('', {}, __('update_profile_error')));
+                Response.socket(ws, '', {}, __('update_profile_error'));
             });
         }
     }
@@ -94,7 +94,7 @@ class SocketsController {
 									src: Config.get('image_url') + photo.src
 								});
 							});
-							ws.send(Response.socket('photos', {photos: photos}));
+							Response.socket(ws, 'photos', {photos: photos});
 						});
 						
 					}
@@ -128,7 +128,7 @@ class SocketsController {
 					src: Config.get('image_url') + photo.src
 				});
 			});
-			ws.send(Response.socket('photos', {photos: photos}));
+			Response.socket(ws, 'photos', {photos: photos});
 		});
 	}
 
@@ -146,7 +146,7 @@ class SocketsController {
 					ws.avatar = userPhoto.src;
 					Model.get('User').update({avatar: userPhoto.src}, {where: {id: ws.user_id}});
 				}
-				ws.send(Response.socket('avatar', {avatar: ws.avatar}));
+				Response.socket(ws, 'avatar', {avatar: ws.avatar});
 			});
 		}
 	}
@@ -159,14 +159,14 @@ class SocketsController {
             Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
                 Socket.update(ws.user_id, updateData);
                 if (data.allowFriends !== undefined) {
-                    ws.send(Response.socket('allow_friends_updated', {result: data.allowFriends}));
+                    Response.socket(ws, 'allow_friends_updated', {result: data.allowFriends});
                 } else if (data.allowRandom !== undefined) {
-                    ws.send(Response.socket('allow_random_updated', {result: data.allowRandom}));
+                    Response.socket(ws, 'allow_random_updated', {result: data.allowRandom});
                 } else if (data.pushesEnabled !== undefined) {
-                    ws.send(Response.socket('pushes_updated', {result: data.pushesEnabled}));
+                    Response.socket(ws, 'pushes_updated', {result: data.pushesEnabled});
                 }
             }, function(err) {
-                ws.send(Response.socket('update_profile_error', {}, __('update_profile_error')));
+                Response.socket(ws, 'update_profile_error', {}, __('update_profile_error'));
             });
         }
     }
@@ -187,12 +187,12 @@ class SocketsController {
                             userTo: userTo,
                             isDelivered: isDelivered
                         }).then(function(message) {
-                            ws.send(Response.socket('message_sent', {}));
+                            Response.socket(ws, 'message_sent', {});
                             if (isDelivered) {
                                 const keys = ['id', 'message', 'createdAt'];
                                 let response = Helper.leftKeys(message.toJSON(), keys);
                                 response.sender = {id: ws.user_id, nickName: ws.nickName, avatar: ws.avatar};
-                                receiver.send(Response.socket('recieve_message', response));
+                                Response.socket(receiver, 'recieve_message', response);
                             }
                         });
                     }
@@ -204,7 +204,7 @@ class SocketsController {
     }
     
     static setLocation(ws, data) {
-        ws.send(Response.socket('coords_setted', {}));
+        Response.socket(ws, 'coords_setted', {});
     }
     
     static getLocations(ws, data) {
@@ -252,7 +252,7 @@ class SocketsController {
                                         }
                                         if (k >= length - 1) {
                                             send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
-                                            ws.send(Response.socket('people', send_data));
+                                            Response.socket(ws, 'people', send_data);
                                         }
                                     } else if (!Helper.inArray(item.key, ws.friends)) {
                                         // if user allow to find him from random mets
@@ -261,24 +261,24 @@ class SocketsController {
                                         }
                                         if (k >= length - 1) {
                                             send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
-                                            ws.send(Response.socket('people', send_data));
+                                            Response.socket(ws, 'people', send_data);
                                         }
                                     }
                                 } else {
                                     if (k >= length - 1) {
                                         send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
-                                        ws.send(Response.socket('people', send_data));
+                                        Response.socket(ws, 'people', send_data);
                                     }
                                 }
                             } else {
                                 if (k >= length - 1) {
                                     send_data = {friendsNear: friendsNear, randomPeople: randomPeople};
-                                    ws.send(Response.socket('people', send_data));
+                                    Response.socket(ws, 'people', send_data);
                                 }
                             }
                         });
                     } else {
-                        ws.send(Response.socket('people', {friendsNear: [], randomPeople: []}));
+                        Response.socket(ws, 'people', {friendsNear: [], randomPeople: []});
                     }
                 } else {
                     console.log('errror');
@@ -296,13 +296,13 @@ class SocketsController {
             }).then(function (uploadedArr) {
                 if (uploadedArr) {
                     console.log(uploadedArr);
-                    Response.socket('files_saved', {});
+                    Response.socket(ws, 'files_saved', {});
                 } else {
-                    Response.socket('files_not_found', {});
+                    Response.socket(ws, 'files_not_found', {});
                 }
             });
         } else {
-            Response.socket('file_ids_required', {});
+            Response.socket(ws, 'file_ids_required', {});
         }
     }
     
@@ -345,7 +345,7 @@ class SocketsController {
 					
 					// check maybe friend already exists
                     if (Helper.inArray(data.friendId, friends)) {
-                        ws.send(Response.socket('friend_exists', {}));
+                        Response.socket(ws, 'friend_exists', {});
                     // user 2 dont have request from user 1
                     } else if (!Helper.inArray(data.friendId, ws.requestsFrom)) {
                         // user 1
@@ -364,13 +364,13 @@ class SocketsController {
                             if (user2Client) {
 								exists = false;
                                 Socket.update(user2.id, {requestsFrom: requestsFrom});
-                                user2Client.send(Response.socket('new_friend_request', user1Data));
+                                Response.socket(user2Client, 'new_friend_request', user1Data);
                             }
                         }
 						if (exists === false) {
-							ws.send(Response.socket('friend_requested', {}));
+							Response.socket(ws, 'friend_requested', {});
 						} else {
-							ws.send(Response.socket('friend_requested_twice', {}));
+							Response.socket(ws, 'friend_requested_twice', {});
 						}
                     // user 2 already have request from user 1
                     } else {
@@ -394,7 +394,7 @@ class SocketsController {
                             }, {where: {id: ws.user_id}}).then(function(result) {
                                 console.log('user 1 friends updated');
                                 Socket.update(ws.user_id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
-                                ws.send(Response.socket('you_confirmed_friend', user2Data));
+                                Response.socket(ws, 'you_confirmed_friend', user2Data);
                             });
                         }
                         // update user 2 friends
@@ -420,17 +420,17 @@ class SocketsController {
                                 console.log('user 2 friends updated');
                                 if (user2Client) {
                                     Socket.update(user2.id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
-                                    user2Client.send(Response.socket('user_confirmed_friend', user1Data));
+                                    Response.socket(user2Client, 'user_confirmed_friend', user1Data);
                                 }
                             });
                         }
                     }
                 } else {
-                    ws.send(Response.socket('user_id_not_found', {}));
+                    Response.socket(ws, 'user_id_not_found', {});
                 }
             });
         } else {
-            ws.send(Response.socket('adding_self', {}));
+            Response.socket(ws, 'adding_self', {});
         }
     }
     
@@ -506,88 +506,6 @@ class SocketsController {
         }
     }
     
-    static ping(ws, data) {
-        if (Helper.checkParams(data, ['lat', 'lon', 'radius'])) {
-            let coords = {
-                latitude: data.lat,
-                longitude: data.lon
-            };
-            console.log(ws.friends);
-            // table "user:locations"
-            App.geo().removeLocation(ws.user_id);
-            App.geo().addLocation(ws.user_id, coords, function (err, reply) {
-                if (!err) {
-                    // "user_times" - time of last user ping in timestamp format
-                    let args = ['user_times', Date.now(), ws.user_id];
-                    App.redis().zrem('user_times', ws.user_id);
-                    App.redis().zadd(args, function (err, resp) {
-                        if (!err) {
-                            App.geo().nearby(coords, data.radius, {
-                                withDistances: true,
-                                withCoordinates: true,
-                                order: true
-                            }, function (err, locations) {
-                                if (!err) {
-                                    let friendsNear = [];
-                                    let randomPeople = [];
-                                    const length = locations.length;
-                                    const sendPeopleResponse = function (friendsNear, randomPeople) {
-                                        ws.send(Response.socket('people', {friendsNear: friendsNear, randomPeople: randomPeople}));
-                                    };
-                                    locations.forEach(function (item, k) {
-                                        if (parseInt(item.key, 10) !== parseInt(ws.user_id, 10)) { // remove own user id from both listings
-                                            //is user's friend?
-                                            if (ws.friends.length && Helper.inArray(item.key, ws.friends)) {
-                                                App.redis().get('f_' + item.key, function (err, resp) {
-                                                    if (!err && resp) {
-                                                        friendsNear.push(item);
-                                                        // console.log(friendsNear);
-                                                    }
-                                                    if (k >= length - 1) {
-                                                        sendPeopleResponse(friendsNear, randomPeople);
-                                                    }
-                                                    // locations[k] = null; //free RAM
-                                                    // it breaks our app!?
-                                                });
-                                            //is random person?
-                                            } else if (!Helper.inArray(item.key, ws.friends)) {
-                                                App.redis().get('r_' + item.key, function (err, resp) {
-                                                    if (!err && resp) {
-                                                        randomPeople.push(item);
-                                                    }
-                                                    if (k >= length - 1) {
-                                                        sendPeopleResponse(friendsNear, randomPeople);
-                                                    }
-                                                });
-                                            }
-                                        } else {
-                                            if (k >= length - 1) {
-                                                sendPeopleResponse(friendsNear, randomPeople);
-                                            }
-                                        }
-                                    });
-                                } else {
-                                    ws.send(Response.socket('error_get_locations', {}));
-                                }
-                            });
-                        } else {
-                            ws.send(Response.socket('error_set_timestamp', {}));
-                        }
-                    });
-                } else {
-                    ws.send(Response.socket('error_set_coords', {}));
-                }
-            });
-
-            //5 - id of location in table "user:locations"
-//            redisGeo.location(5, function (err, loc) {
-//                console.log(loc);
-//            });
-        } else {
-            ws.send(Response.socket('all_params_are_required', {}));
-        }
-    }
-    
     static signup(ws, data) {
         App.db().sync().then(function() {
             const uuidV4 = require('uuid/v4');
@@ -604,7 +522,7 @@ class SocketsController {
             response.allowFriends = true;
             response.allowRandom = true;
             response.meetsCount = 0;
-            ws.send(Response.socket('user_created', response));
+            Response.socket(ws, 'user_created', response);
         }, function(error){
             console.log(error);
         });
@@ -637,7 +555,7 @@ class SocketsController {
                 let response = {};
                 messages.forEach(function (message, k) {
                     response = message.toJSON();
-                    ws.send(Response.socket('receive_message', response));
+                    Response.socket(ws, 'receive_message', response);
                 });
             }
         });
@@ -647,9 +565,9 @@ class SocketsController {
 	
     static login(ws, data) {
         if (!data.password) {
-            ws.send(Response.socket('', {}, __('password_empty')));
+            Response.socket(ws, '', {}, __('password_empty'));
         } else if (!data.nickName && !data.email) {
-            ws.send(Response.socket('', {}, __('email_or_nickname_required')));
+            Response.socket(ws, '', {}, __('email_or_nickname_required'));
         } else {
 //            let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.nickName};
             let whereCond = {$or: [
@@ -667,13 +585,13 @@ class SocketsController {
                         
                         Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
                             let response = App.formatter().userProfile(user, count);
-                            ws.send(Response.socket('user_logined', response));
+                            Response.socket(ws, 'user_logined', response);
                         });
                     } else {
-                        ws.send(Response.socket('user_logined', {}, __('incorrect_login_or_pass')));
+                        Response.socket(ws, 'user_logined', {}, __('incorrect_login_or_pass'));
                     }
                 } else {
-                    ws.send(Response.socket('user_logined', {}, __('incorrect_login_or_pass')));
+                    Response.socket(ws, 'user_logined', {}, __('incorrect_login_or_pass'));
                 }
             }, function(err) {
                 console.log(err);
@@ -691,12 +609,12 @@ class SocketsController {
                     if (App.sha1(data.old_password) === user.password) {
                             const updateData = {password: App.sha1(data.new_password)};
                             Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
-                                    ws.send(Response.socket('password_updated', {}));
+                                    Response.socket(ws, 'password_updated', {});
                             }, function(err) {
-                                    ws.send(Response.socket('password_updated', {}, __('update_profile_error')));
+                                    Response.socket(ws, 'password_updated', {}, __('update_profile_error'));
                             });
                     } else {
-                            ws.send(Response.socket('password_updated', {}, __('update_password_error')));
+                            Response.socket(ws, 'password_updated', {}, __('update_password_error'));
                     }
                 }
             }, function(err) {
@@ -718,9 +636,9 @@ class SocketsController {
 				if(user) {
 					Socket.authorize(ws, user);
 					Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true, distance: ''});
-					ws.send(Response.socket('relogined', {result: true}));
+					Response.socket(ws, 'relogined', {result: true});
 				} else {
-					ws.send(Response.socket('relogined', {result: false}));
+					Response.socket(ws, 'relogined', {result: false});
 				}
 			});
 		}
@@ -761,10 +679,10 @@ class SocketsController {
 
 						result.push(formattedUser);
 					});
-					ws.send(Response.socket('requests_from', {friends: result}));
+					Response.socket(ws, 'requests_from', {friends: result});
 				});
 			} else {
-				ws.send(Response.socket('requests_from', {friends: result}));
+				Response.socket(ws, 'requests_from', {friends: result});
 			}
 		}
 	}
@@ -835,7 +753,7 @@ class SocketsController {
 					
 					result = withDistances.concat(emptyDistances);
 					
-					ws.send(Response.socket('friends', {friends: result}));
+					Response.socket(ws, 'friends', {friends: result});
 				};
 				
 
@@ -883,7 +801,7 @@ class SocketsController {
 				async.map(result, getDistance, send_response);
             });
         } else {
-            ws.send(Response.socket('friends', {friends: []}));
+            Response.socket(ws, 'friends', {friends: []});
         }
     }
     
@@ -913,23 +831,23 @@ class SocketsController {
                                 userTo: data.userId
                             };
                             Model.get('Meeting').create(rawData).then(function (meeting) {
-                                ws.send(Response.socket('meeting_requested', {meetingId: meeting.id, userTo: data.userId}));
-                                client.send(Response.socket('request_meeting', {meetingId: meeting.id, userFrom: ws.user_id}));
+                                Response.socket(ws, 'meeting_requested', {meetingId: meeting.id, userTo: data.userId});
+                                Response.socket(client, 'request_meeting', {meetingId: meeting.id, userFrom: ws.user_id});
                                 client = null;
                             }, function (error) {
                                 console.log(error);
                                 // ошибка создания встречи в БД
                             });
                         } else {
-                            ws.send(Response.socket('meeting_exists', {}, __('meeting_exists')));
+                            Response.socket(ws, 'meeting_exists', {}, __('meeting_exists'));
                         }
                     });
                 } else {
                     //юзер скрыл шаринг координат
-                    ws.send(Response.socket('meeting_user_too_far', {}, __('meeting_user_too_far')));
+                    Response.socket(ws, 'meeting_user_too_far', {}, __('meeting_user_too_far'));
                 }
             } else {
-                ws.send(Response.socket('meeting_user_offline', {}, __('meeting_user_offline')));
+                Response.socket(ws, 'meeting_user_offline', {}, __('meeting_user_offline'));
             }
         } else {
             console.log(5);
@@ -944,18 +862,18 @@ class SocketsController {
                     if (meeting.userFrom === ws.user_id || meeting.userTo === ws.user_id) {
                         // async update
                         Model.get('Meeting').update({status: 3}, {where: {id: meeting.id}});
-                        ws.send(Response.socket('you_discarded_meeting', {meetingId: meeting.id}));
+                        Response.socket(ws, 'you_discarded_meeting', {meetingId: meeting.id});
                         const clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
                         let client = Socket.clients(clientId);
                         if (client) {
-                            client.send(Response.socket('meeting_discarded', {meetingId: meeting.id}));
+                            Response.socket(client, 'meeting_discarded', {meetingId: meeting.id});
                         } else {
                             // push notification
                         }
                         meeting = null;
                     }
                 } else {
-                    ws.send(Response.socket('meeting_not_found', {}));
+                    Response.socket(ws, 'meeting_not_found', {});
                 }
             });
         }
@@ -970,11 +888,11 @@ class SocketsController {
                         let expiredAt = date.toISOString().slice(0, 19).replace('T', ' ');
                         // async update
                         Model.get('Meeting').update({status: 1, expiredAt: expiredAt}, {where: {id: meeting.id}});
-                        ws.send(Response.socket('you_approved_meeting', {meetingId: meeting.id}));
+                        Response.socket(ws, 'you_approved_meeting', {meetingId: meeting.id});
                         const clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
                         let client = Socket.clients(clientId);
                         if (client) {
-                            client.send(Response.socket('meeting_approved', {meetingId: meeting.id}));
+                            Response.socket(client, 'meeting_approved', {meetingId: meeting.id});
                         } else {
                             // push notification
                         }
@@ -1025,7 +943,7 @@ class SocketsController {
                     formatted.push(result);
                 });
             }
-            ws.send(Response.socket('meetings', {meetings: formatted}));
+            Response.socket(ws, 'meetings', {meetings: formatted});
         });
     }
     
@@ -1085,7 +1003,7 @@ class SocketsController {
 													client = Socket.clients(metUser.id);
 													if (client) {
 														Socket.update(metUser.id, {meetsCount: meetsCount});
-														client.send(Response.socket('meeting_success', {meetingId: meeting.id, meetsCount: meetsCount}));
+														Response.socket(client, 'meeting_success', {meetingId: meeting.id, meetsCount: meetsCount});
 													} else {
 														// push
 													}
@@ -1097,7 +1015,7 @@ class SocketsController {
 										user.distance = distance;
 										users.push(user);
 										if (!meeting[key + 1]) {
-											ws.send(Response.socket('meeting_users', {users: users}));
+											Response.socket(ws, 'meeting_users', {users: users});
 										}
 									}
 								});
@@ -1108,7 +1026,7 @@ class SocketsController {
                     });                
                 });
             } else {
-                ws.send(Response.socket('meeting_users', {users: []}));
+                Response.socket(ws, 'meeting_users', {users: []});
             }
         });
     }

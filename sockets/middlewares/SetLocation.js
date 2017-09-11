@@ -39,7 +39,7 @@ class SetLocation {
 												if (distance != "") {
 													distance = App.formatter().distance(distance);
 												}
-												friendOnline.send(Response.socket('online_status', {id: ws.user_id, status: true, distance: distance}));
+												Response.socket(friendOnline, 'online_status', {id: ws.user_id, status: true, distance: distance});
 												
 												callback(null, item);
 											} else {

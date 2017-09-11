@@ -9,16 +9,16 @@ schedule.scheduleJob(Config.get('cron_users_meeting'), function () {
             client2 = Socket.clients(meeting.userTo);
             if (Date.now() <= (new Date(meeting.expiredAt)).getTime()) {
                 if (client1 && client2) {
-                    client1.send(Response.socket('do_meeting', {}));
-                    client2.send(Response.socket('do_meeting', {}));
+                    Response.socket(client1, 'do_meeting', {});
+                    Response.socket(client2, 'do_meeting', {});
                 }
             } else {
                 Model.get('Meeting').update({status: 4}, {where: {id: meeting.id}});
                 if (client1) {
-                    client1.send(Response.socket('meeting_expired', {meetingId: meeting.id}));
+                    Response.socket(client1, 'meeting_expired', {meetingId: meeting.id});
                 }
                 if (client2) {
-                    client2.send(Response.socket('meeting_expired', {meetingId: meeting.id}));
+                    Response.socket(client2, 'meeting_expired', {meetingId: meeting.id});
                 }
             }
         });

@@ -26,8 +26,7 @@ const routes = {
     set_avatar: 'SocketsController.setAvatar',
     update_password: 'SocketsController.updatePassword',
     update_profile_bool: 'SocketsController.updateProfileBool',
-    save_files: 'SocketsController.saveFiles',
-    ping: 'SocketsController.ping'
+    save_files: 'SocketsController.saveFiles'
 };
 
 const middlewares = {

@@ -37,7 +37,7 @@ function post_process(haystack) {
 
 class Response {
     
-    static socket(command, data, message) {
+    static socket(ws, command, data, message) {
         if (Helper.isNo(message)) {
             message = '';
         }
@@ -46,7 +46,9 @@ class Response {
             data: post_process(data),
             message: message
         };
-        return JSON.stringify(send_data);
+		if (ws.readyState == 1) {
+			ws.send(JSON.stringify(send_data));
+		}
     }
     
     static http(data, command, message ) {

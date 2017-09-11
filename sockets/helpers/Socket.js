@@ -89,7 +89,7 @@ class Socket {
 				process.nextTick(function () {
 					let friend = Socket.clients(friend_id);
 					if (friend) {
-						friend.send(Response.socket(command, data));
+						Response.socket(friend, command, data);
 					}
 					callback(null, friend_id);
 				});
@@ -134,7 +134,7 @@ class Socket {
 							}
 						});
 						
-                        // friend.send(Response.socket('friend_near', {}, message));
+                        // Response.socket(friend, 'friend_near', {}, message);
                     }
                 }
             });
