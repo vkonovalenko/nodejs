@@ -9,7 +9,6 @@ schedule.scheduleJob(Config.get('cron_users_set_location'), function () {
 			process.nextTick(function () {
 				let loginedClient = Socket.clients(user_id);
 				if (loginedClient) {
-					console.log(loginedClient);
 					loginedClient.send('{"action": "do_set_location"}');
 				}
 				callback(null, user_id);

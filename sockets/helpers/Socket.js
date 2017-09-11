@@ -84,13 +84,18 @@ class Socket {
     
     static sendToFriends(ws, command, data) {
         if (ws && Helper.isVar(ws.friends)) {
-            let friend = null;
-            ws.friends.forEach(function(friendId) {
-                friend = Socket.clients(friendId);
-                if (friend) {
-                    friend.send(Response.socket(command, data));
-                }
-            });
+			let async = require('async');
+			function send(friend_id, callback) {
+				process.nextTick(function () {
+					let friend = Socket.clients(friend_id);
+					if (friend) {
+						friend.send(Response.socket(command, data));
+					}
+					callback(null, friend_id);
+				});
+				
+			}
+			async.map(ws.friends, send);
         }
     }
     
