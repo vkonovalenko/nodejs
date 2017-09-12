@@ -18,7 +18,7 @@ class SetLocation {
                     if (!err) {
                         Socket.update(ws.user_id, {lat: coords.latitude, lon: coords.longitude});
 
-                        if (ws.friends.length) {
+                        if (ws.friends && ws.friends.length) {
 							
 							let async = require('async');
 							function formatDistance(item, callback) {
