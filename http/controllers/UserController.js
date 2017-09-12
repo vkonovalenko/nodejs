@@ -82,6 +82,8 @@ class UserController {
 										if (ws) {
 											console.log('AVATAR UPDATING.............');
 											ws.avatar = created_file.src;
+											
+											Response.socket(ws, 'avatar', {avatar: created_file.src});
 										}
 									}
 									
