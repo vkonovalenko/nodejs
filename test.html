@@ -126,10 +126,8 @@ $( document ).ready(function() {
             };
             ws.onmessage = function(msg) {
               if (msg.type == 'message') {
-                  
                   ++responsesCount;
                   $responcesCount.html(responsesCount);
-                  
                   var data = JSON.parse(msg.data);
                   if (data.action == 'do_set_location') {
                       var lat = getRandomNumber(50, 52);
@@ -157,30 +155,71 @@ $( document ).ready(function() {
             return ws;
         }
 
-        var connections = [];
+		function generateUsers(count) {
+			var usersList = [];
+			for(var i = 1; i <= count; i++) {
+				usersList.push({
+					nickname: 'test' + i,
+					password: 123
+				});
+			}
+			return usersList;
+		}
+        
+		function startTest(delayMs) {
+			var connections = [];
 
-        for (var i = 0; i < users.length; i++) {
-            var ws = login(users[i].nickname, users[i].password);
-            connections.push(ws);
-        }
-        
-        
-        function runRandomCommand() {
-          if (requestsCount < 5000) {
-          var connectionsCount = connections.length;
-          var commandsCount = randomCommands.length;
-          
-          var randomConnection = connections[getRandomInt(0, connectionsCount - 1)];
-          
-          var randomCommand = randomCommands[getRandomInt(0, commandsCount - 1)];
-          var requestData = (randomCommand.data) ? randomCommand.data : {};
-          
-          if (randomConnection.readyState == 1) {
-              sendRequest(randomConnection, randomCommand.command, requestData);
-          }
-          }
-        }
-        setInterval(runRandomCommand, 1);
+			users = generateUsers(250);
+			
+			for (var i = 0; i < users.length; i++) {
+				var ws = login(users[i].nickname, users[i].password);
+				connections.push(ws);
+			}
+			
+			function runRandomCommand() {
+			  if (true || requestsCount < 5000) {
+			  var connectionsCount = connections.length;
+			  var commandsCount = randomCommands.length;
+
+			  var randomConnection = connections[getRandomInt(0, connectionsCount - 1)];
+
+			  var randomCommand = randomCommands[getRandomInt(0, commandsCount - 1)];
+			  var requestData = (randomCommand.data) ? randomCommand.data : {};
+
+			  if (randomConnection.readyState == 1) {
+				  sendRequest(randomConnection, randomCommand.command, requestData);
+			  }
+			  }
+			}
+			setInterval(runRandomCommand, delayMs);
+		}
+		
+		function startCreateUsers(count, delayMs) {
+			var i = 819;
+			function createUser() {
+				var connection = newConnection();
+				connection.onopen = function(evt) {
+					var userData = {
+						email: 'test' + i + '@test.com',
+						deviceOs: 'android',
+						password: 'b4cc50660fe12f4a1dbd80f55c1a7c8449809791',
+						firstName: 'test' + i,
+						lastName: 'test' + i,
+						nickName: 'test' + i
+					};
+					if (connection.readyState == 1) {
+						sendRequest(connection, 'signup', userData);
+					}
+					++i;
+				};
+			}
+
+			setInterval(createUser, delayMs);
+		}
+
+		
+		 //startTest(500);
+		 //startCreateUsers(500, 500);
         
 });
     
