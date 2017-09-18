@@ -586,7 +586,7 @@ class SocketsController {
 	
 	static dialogues(ws, data) {
 		// its not possible to make correct DISTINCT ON("userFrom","userTo") with sequalize
-		let query = 'SELECT DISTINCT ON("userFrom","userTo") "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."id", "user_messages"."createdAt", "user_messages"."message", "user_messages"."isDelivered", "sender"."id" AS "sender.id", "sender"."nickName" AS "sender.nickName", "sender"."avatar" AS "sender.avatar", "receiver"."id" AS "receiver.id", "receiver"."nickName" AS "receiver.nickName", "receiver"."avatar" AS "receiver.avatar"'+
+		let query = 'SELECT DISTINCT ON("userFrom","userTo") "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."id", "user_messages"."message", "user_messages"."createdAt", "user_messages"."message", "user_messages"."isDelivered", "sender"."id" AS "sender.id", "sender"."nickName" AS "sender.nickName", "sender"."avatar" AS "sender.avatar", "receiver"."id" AS "receiver.id", "receiver"."nickName" AS "receiver.nickName", "receiver"."avatar" AS "receiver.avatar"'+
 					'FROM "user_messages" AS "user_messages"'+
 					'LEFT OUTER JOIN "users" AS "sender" ON "user_messages"."userFrom" = "sender"."id"'+
 					'LEFT OUTER JOIN "users" AS "receiver" ON "user_messages"."userTo" = "receiver"."id"'+
@@ -604,6 +604,7 @@ class SocketsController {
 					id: dialogue.id,
 					createdAt: dialogue.createdAt,
 					delivered: dialogue.isDelivered,
+					message: dialogue.message,
 					user: {
 						id: (isOwnMessage) ? dialogue['sender.id'] : dialogue['receiver.id'],
 						avatar: (isOwnMessage) ? dialogue['sender.avatar'] : dialogue['receiver.avatar'],
