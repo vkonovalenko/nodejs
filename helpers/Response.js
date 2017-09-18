@@ -27,7 +27,11 @@ function post_process(haystack) {
                 return post_process(haystack[key]);
             } else {
                 if (key === 'avatar' || key === 'src') {
-                        haystack[key] = Config.get('image_url') + haystack[key];
+					if (haystack[key]) {
+						haystack[key] = Config.get('image_url') + haystack[key];
+					} else {
+						haystack[key] = '';
+					}
                 }
             }
         });
