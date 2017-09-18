@@ -566,11 +566,10 @@ class SocketsController {
 			Model.get('UserPhoto').findOne({
 				where: {id: data.photo_id, userId: ws.user_id}
 			}).then(function(photo) {
-				let photoId = photo.id;
-				let photoSrc = photo.src;
 				if (ws.avatar === photo.src) {
 					Model.get('User').update({avatar: null}, {where: {id: ws.user_id}});
 					ws.avatar = '';
+					Response.socket(ws, 'avatar', {avatar: ''});
 				}
 				let fullPath = Config.get('app_path') + 'public/uploads' + photo.src;
 				let fs = require('fs');
