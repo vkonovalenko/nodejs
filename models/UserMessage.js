@@ -8,5 +8,6 @@ let UserMessage = App.db().define('user_messages', {
 });
 
 UserMessage.belongsTo(Model.get('User'), {as: 'sender', foreignKey: 'userFrom', targetKey: 'id'});
+UserMessage.belongsTo(Model.get('User'), {as: 'receiver', foreignKey: 'userTo', targetKey: 'id'});
 
 module.exports.UserMessage = UserMessage;

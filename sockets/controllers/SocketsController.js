@@ -566,6 +566,7 @@ class SocketsController {
 			Model.get('UserPhoto').findOne({
 				where: {id: data.photo_id, userId: ws.user_id}
 			}).then(function(photo) {
+				let photoId = photo.id;
 				if (ws.avatar === photo.src) {
 					Model.get('User').update({avatar: null}, {where: {id: ws.user_id}});
 					ws.avatar = '';
@@ -578,13 +579,66 @@ class SocketsController {
 				}
 				photo.destroy();
 				
-				Response.socket(ws, 'photo_deleted', {});
+				Response.socket(ws, 'photo_deleted', {photo_id: photoId});
 			});
 		}
 	}
 	
+	
+//	SELECT DISTINCT ON("userFrom","userTo") "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."id", "user_messages"."createdAt", "user_messages"."message", "user_messages"."isDelivered", "sender"."id" AS "sender.id", "sender"."nickName" AS "sender.nickName", "sender"."avatar" AS "sender.avatar", "receiver"."id" AS "receiver.id", "receiver"."nickName" AS "receiver.nickName", "receiver"."avatar" AS "receiver.avatar"
+//
+//	FROM "user_messages" AS "user_messages"
+//
+//	LEFT OUTER JOIN "users" AS "sender" ON "user_messages"."userFrom" = "sender"."id"
+//	LEFT OUTER JOIN "users" AS "receiver" ON "user_messages"."userTo" = "receiver"."id"
+//
+//	WHERE ("user_messages"."userFrom" = 11 OR "user_messages"."userTo" = 11)
+//
+//	ORDER BY "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."createdAt" DESC
 	static dialogues(ws, data) {
+		let query = {
+			attributes: ['id', 'createdAt', 'userFrom', 'userTo', 'message', 'isDelivered'],
+			where: {
+				$or: [
+					{userFrom: ws.user_id},
+					{userTo: ws.user_id}
+				]
+			},
+            include: [
+                { model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar'] },
+                { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
+            ],
+			group: ['userFrom', 'userTo']
+//			order: [
+//				['createdAt', 'DESC']
+//			]
+		};
 		
+		function sendResponse(err, data) {
+			Response.socket(ws, 'photo_deleted', {dialogues: data});
+		}
+		
+		function formatDialogue(dialogue, callback) {
+			process.nextTick(function() {
+				let isOwnMessage = (dialogue.sender.id == ws.user_id);
+				dialogue = {
+					id: dialogue.id,
+					createdAt: dialogue.createdAt,
+					delivered: dialogue.isDelivered,
+					user: {
+						id: (isOwnMessage) ? dialogue.sender.id : dialogue.receiver.id,
+						avatar: (isOwnMessage) ? dialogue.sender.avatar : dialogue.receiver.avatar,
+						nickName: (isOwnMessage) ? dialogue.sender.nickName : dialogue.receiver.nickName
+					}
+				};
+				callback(null, dialogue);
+			});
+		}
+		
+		Model.get('UserMessage').findAll(query).then(function(dialogues) {
+			let async = require('async');
+			async.map(dialogues, formatDialogue, sendResponse);
+		});
 	}
 	
     static login(ws, data) {
