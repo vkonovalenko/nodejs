@@ -561,7 +561,32 @@ class SocketsController {
         });
     }
     
-	//@TODO: check for property readyState == 1 before every ws.send()
+	static deletePhoto(ws, data) {
+		if (data.photo_id) {
+			Model.get('UserPhoto').findOne({
+				where: {id: data.photo_id, userId: ws.user_id}
+			}).then(function(photo) {
+				let photoId = photo.id;
+				let photoSrc = photo.src;
+				if (ws.avatar === photo.src) {
+					Model.get('User').update({avatar: null}, {where: {id: ws.user_id}});
+					ws.avatar = '';
+				}
+				let fullPath = Config.get('app_path') + 'public/uploads' + photo.src;
+				let fs = require('fs');
+				if (fs.existsSync(fullPath)) {
+					fs.unlink(fullPath);
+				}
+				photo.destroy();
+				
+				Response.socket(ws, 'photo_deleted', {});
+			});
+		}
+	}
+	
+	static dialogues(ws, data) {
+		
+	}
 	
     static login(ws, data) {
         if (!data.password) {
