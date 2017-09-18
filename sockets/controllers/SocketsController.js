@@ -125,7 +125,7 @@ class SocketsController {
 			userPhotos.forEach(function (photo, k) {
 				photos.push({
 					id: photo.id,
-					src: Config.get('image_url') + photo.src
+					src: photo.src
 				});
 			});
 			Response.socket(ws, 'photos', {photos: photos});
