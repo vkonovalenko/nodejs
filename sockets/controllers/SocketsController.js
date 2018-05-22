@@ -3,14 +3,14 @@
 /* global App, Model, Helper, Socket, Response */
 
 class SocketsController {
-    
+
     static getProfile(ws, data) {
-        Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: false}}).then(function(count) {
+        Model.get('UserMessage').count({where: {userTo: ws.user_id, isDelivered: false}}).then(function (count) {
             let response = App.formatter().userProfile(ws, count);
             Response.socket(ws, 'profile', response);
         });
     }
-    
+
     static updateProfile(ws, data) {
         let updateData = {};
         const keys = ['firstName', 'lastName', 'allowFriends', 'allowRandom', 'phone', 'deviceOs', 'pushesEnabled', 'email', 'nickName'];
@@ -18,145 +18,145 @@ class SocketsController {
         if (data.password) {
             updateData.password = App.sha1(data.password);
         }
-        
+
         if (Object.keys(updateData).length > 0) {
-            
+
             let emailValid = true;
             let nicknameValid = true;
-            
-            let promiseNickname = new Promise(function(resolve, reject) {
+
+            let promiseNickname = new Promise(function (resolve, reject) {
                 if (data.nickName && data.nickName != ws.nickName) {
-                    Model.get('User').count({where: {nickName: data.nickName}}).then(function(count) {
+                    Model.get('User').count({where: {nickName: data.nickName}}).then(function (count) {
                         if (count) {
                             reject();
                         }
                     });
                 }
             });
-            
-            promiseNickname.catch(function(err) {
+
+            promiseNickname.catch(function (err) {
                 Response.socket(ws, '', {}, __('nickname_taken'));
             });
-            
-            let promiseEmail = new Promise(function(resolve, reject) {
+
+            let promiseEmail = new Promise(function (resolve, reject) {
                 if (data.email && data.email != ws.email) {
-                    Model.get('User').count({where: {email: data.email}}).then(function(count) {
+                    Model.get('User').count({where: {email: data.email}}).then(function (count) {
                         if (count) {
                             reject();
                         }
                     });
                 }
             });
-            
-            promiseEmail.catch(function(err) {
+
+            promiseEmail.catch(function (err) {
                 Response.socket(ws, '', {}, __('email_taken'));
             });
-            
-            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+
+            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function (user) {
                 Socket.update(ws.user_id, updateData);
                 Response.socket(ws, 'profile_updated', App.formatter().userProfile(ws, 0));
-            }, function(err) {
+            }, function (err) {
                 Response.socket(ws, '', {}, __('update_profile_error'));
             });
         }
     }
-    
-	static updatePhotos(ws, data) {
-		if (Helper.isVar(data.photo_ids) && Helper.isVar(data.action)) {
-			if (Helper.inArray(data.action, ['add', 'delete'])) {
-				Model.get('UploadedFile').findAll({
-				where: {
-					id: {in: data.photo_ids},
-					userId: ws.user_id
-				}
-            }).then(function (uploadedFiles) {
-				if (data.action == 'add') {
-					if (uploadedFiles.length) {
-						uploadedFiles.forEach(function (file, k) {
-							Model.get('UserPhoto').create({src: file.src, userId: ws.user_id});
-						});
 
-						Model.get('UploadedFile').destroy({
-							where: {
-								id: {in: data.photo_ids}
-							}
-						});
-						
-						Model.get('UserPhoto').findAll({
-							where: {
-								userId: ws.user_id
-							}
-						}).then(function (userPhotos) {
-							let photos = [];
-							userPhotos.forEach(function (photo, k) {
-								photos.push({
-									id: photo.id,
-									src: Config.get('image_url') + photo.src
-								});
-							});
-							Response.socket(ws, 'photos', {photos: photos});
-						});
-						
-					}
-				} else if (data.action == 'delete') {
-					Model.get('UserPhoto').destroy({
-						where: {
-							id: {in: data.photo_ids}
-						}
-					});
-				}
+    static updatePhotos(ws, data) {
+        if (Helper.isVar(data.photo_ids) && Helper.isVar(data.action)) {
+            if (Helper.inArray(data.action, ['add', 'delete'])) {
+                Model.get('UploadedFile').findAll({
+                    where: {
+                        id: {in: data.photo_ids},
+                        userId: ws.user_id
+                    }
+                }).then(function (uploadedFiles) {
+                    if (data.action == 'add') {
+                        if (uploadedFiles.length) {
+                            uploadedFiles.forEach(function (file, k) {
+                                Model.get('UserPhoto').create({src: file.src, userId: ws.user_id});
+                            });
+
+                            Model.get('UploadedFile').destroy({
+                                where: {
+                                    id: {in: data.photo_ids}
+                                }
+                            });
+
+                            Model.get('UserPhoto').findAll({
+                                where: {
+                                    userId: ws.user_id
+                                }
+                            }).then(function (userPhotos) {
+                                let photos = [];
+                                userPhotos.forEach(function (photo, k) {
+                                    photos.push({
+                                        id: photo.id,
+                                        src: Config.get('image_url') + photo.src
+                                    });
+                                });
+                                Response.socket(ws, 'photos', {photos: photos});
+                            });
+
+                        }
+                    } else if (data.action == 'delete') {
+                        Model.get('UserPhoto').destroy({
+                            where: {
+                                id: {in: data.photo_ids}
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+    static getPhotos(ws, data) {
+        let userId = ws.user_id;
+        if (Helper.isVar(data.user_id)) {
+            userId = data.user_id;
+        }
+
+        Model.get('UserPhoto').findAll({
+            where: {
+                userId: userId
+            }
+        }).then(function (userPhotos) {
+            let photos = [];
+            userPhotos.forEach(function (photo, k) {
+                photos.push({
+                    id: photo.id,
+                    src: photo.src
+                });
             });
-			}
-		}
-	}
+            Response.socket(ws, 'photos', {photos: photos});
+        });
+    }
 
-	static getPhotos(ws, data) {
-		let userId = ws.user_id;
-		if (Helper.isVar(data.user_id)) {
-			userId = data.user_id;
-		}
-		
-		Model.get('UserPhoto').findAll({
-			where: {
-				userId: userId
-			}
-		}).then(function (userPhotos) {
-			let photos = [];
-			userPhotos.forEach(function (photo, k) {
-				photos.push({
-					id: photo.id,
-					src: photo.src
-				});
-			});
-			Response.socket(ws, 'photos', {photos: photos});
-		});
-	}
+    //@TODO: send messages to all online friends when avatar changing
+    // Add default avatar image in settings
+    static setAvatar(ws, data) {
+        if (Helper.isVar(data.photo_id)) {
+            Model.get('UserPhoto').findOne({
+                where: {
+                    userId: ws.user_id,
+                    id: data.photo_id
+                }
+            }).then(function (userPhoto) {
+                if (userPhoto) {
+                    ws.avatar = userPhoto.src;
+                    Model.get('User').update({avatar: userPhoto.src}, {where: {id: ws.user_id}});
+                }
+                Response.socket(ws, 'avatar', {avatar: ws.avatar});
+            });
+        }
+    }
 
-	//@TODO: send messages to all online friends when avatar changing
-	// Add default avatar image in settings
-	static setAvatar(ws, data) {
-		if (Helper.isVar(data.photo_id)) {
-			Model.get('UserPhoto').findOne({
-				where: {
-					userId: ws.user_id,
-					id: data.photo_id
-				}
-			}).then(function (userPhoto) {
-				if (userPhoto) {
-					ws.avatar = userPhoto.src;
-					Model.get('User').update({avatar: userPhoto.src}, {where: {id: ws.user_id}});
-				}
-				Response.socket(ws, 'avatar', {avatar: ws.avatar});
-			});
-		}
-	}
-	
     static updateProfileBool(ws, data) {
         let updateData = {};
         const keys = ['allowFriends', 'allowRandom', 'pushesEnabled'];
         updateData = Helper.leftKeys(data, keys);
         if (Object.keys(updateData).length > 0) {
-            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
+            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function (user) {
                 Socket.update(ws.user_id, updateData);
                 if (data.allowFriends !== undefined) {
                     Response.socket(ws, 'allow_friends_updated', {result: data.allowFriends});
@@ -165,18 +165,18 @@ class SocketsController {
                 } else if (data.pushesEnabled !== undefined) {
                     Response.socket(ws, 'pushes_updated', {result: data.pushesEnabled});
                 }
-            }, function(err) {
+            }, function (err) {
                 Response.socket(ws, 'update_profile_error', {}, __('update_profile_error'));
             });
         }
     }
-    
+
     static message(ws, data) {
         if (Helper.checkParams(data, ['message', 'userTo'])) {
             const messageText = data.message;
             const userTo = data.userTo;
             if (ws.user_id != userTo) {
-                Model.get('User').count({id: userTo}).then(function(count) {
+                Model.get('User').count({id: userTo}).then(function (count) {
                     // make check for blocking
                     if (count) {
                         const receiver = Socket.clients(userTo);
@@ -186,7 +186,7 @@ class SocketsController {
                             userFrom: ws.user_id,
                             userTo: userTo,
                             isDelivered: isDelivered
-                        }).then(function(message) {
+                        }).then(function (message) {
                             Response.socket(ws, 'message_sent', {});
                             if (isDelivered) {
                                 const keys = ['id', 'message', 'createdAt'];
@@ -202,16 +202,16 @@ class SocketsController {
             console.log('message error');
         }
     }
-    
+
     static setLocation(ws, data) {
         Response.socket(ws, 'coords_setted', {});
     }
-    
+
     static getLocations(ws, data) {
         if (data.radius) {
             const coords = {
-                    latitude: data.lat,
-                    longitude: data.lon
+                latitude: data.lat,
+                longitude: data.lon
             };
             // @TODO: add check for radius
             const radius = data.radius;
@@ -241,7 +241,7 @@ class SocketsController {
                                         nickName: client.nickName,
                                         distance: item.distance,
                                         avatar: client.avatar
-                                        //item.latitude, item.longitude
+                                                //item.latitude, item.longitude
                                     };
                                     // check for friends
                                     // user has friends and item.key(user_id) in friend list
@@ -286,7 +286,7 @@ class SocketsController {
             });
         }
     }
-    
+
     static saveFiles(ws, data) {
         //redisClient...
         if (data.fileIds && data.fileIds.length) {
@@ -305,7 +305,7 @@ class SocketsController {
             Response.socket(ws, 'file_ids_required', {});
         }
     }
-    
+
     /*
      * 1. Получаем юзера(u2) по id, которого наш пользователь(u1) пытается добавить
      * 2. Проверяем забанил ли u2 пользователя u1
@@ -319,7 +319,7 @@ class SocketsController {
      * Добавляем пользователя u2 айдишник пользователя u1 в requestsFrom
      * Добавляем пользователя u1 айдишник пользователя u2 в requestsTo
      */
-    
+
     static addFriend(ws, data) {
         if (parseInt(data.friendId, 10) !== parseInt(ws.user_id, 10)) {
             // a lot of different checks for ban etc
@@ -342,17 +342,17 @@ class SocketsController {
                     let requestsTo = user2.requestsTo;
                     let requestsFrom = user2.requestsFrom;
                     let friends = ws.friends;
-					
-					// check maybe friend already exists
+
+                    // check maybe friend already exists
                     if (Helper.inArray(data.friendId, friends)) {
                         Response.socket(ws, 'friend_exists', {});
-                    // user 2 dont have request from user 1
+                        // user 2 dont have request from user 1
                     } else if (!Helper.inArray(data.friendId, ws.requestsFrom)) {
                         // user 1
                         let exists = true;
                         requestsTo = ws.requestsTo;
                         if (!Helper.inArray(data.friendId, requestsTo)) {
-							exists = false;
+                            exists = false;
                             requestsTo.push(data.friendId);
                             Model.get('User').update({requestsTo: Helper.getDbArray(requestsTo)}, {where: {id: ws.user_id}});
                             Socket.update(ws.user_id, {requestsTo: requestsTo});
@@ -362,17 +362,17 @@ class SocketsController {
                             requestsFrom.push(ws.user_id);
                             Model.get('User').update({requestsFrom: Helper.getDbArray(requestsFrom)}, {where: {id: user2.id}});
                             if (user2Client) {
-								exists = false;
+                                exists = false;
                                 Socket.update(user2.id, {requestsFrom: requestsFrom});
                                 Response.socket(user2Client, 'new_friend_request', user1Data);
                             }
                         }
-						if (exists === false) {
-							Response.socket(ws, 'friend_requested', {});
-						} else {
-							Response.socket(ws, 'friend_requested_twice', {});
-						}
-                    // user 2 already have request from user 1
+                        if (exists === false) {
+                            Response.socket(ws, 'friend_requested', {});
+                        } else {
+                            Response.socket(ws, 'friend_requested_twice', {});
+                        }
+                        // user 2 already have request from user 1
                     } else {
                         // update user 1 friends
                         let friends = ws.friends;
@@ -391,7 +391,7 @@ class SocketsController {
                                 friends: Helper.getDbArray(friends),
                                 requestsTo: Helper.getDbArray(requestsTo),
                                 requestsFrom: Helper.getDbArray(requestsFrom)
-                            }, {where: {id: ws.user_id}}).then(function(result) {
+                            }, {where: {id: ws.user_id}}).then(function (result) {
                                 console.log('user 1 friends updated');
                                 Socket.update(ws.user_id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
                                 Response.socket(ws, 'you_confirmed_friend', user2Data);
@@ -416,7 +416,7 @@ class SocketsController {
                                 friends: Helper.getDbArray(friends),
                                 requestsTo: Helper.getDbArray(requestsTo),
                                 requestsFrom: Helper.getDbArray(requestsFrom)
-                            }, {where: {id: user2.id}}).then(function(result) {
+                            }, {where: {id: user2.id}}).then(function (result) {
                                 console.log('user 2 friends updated');
                                 if (user2Client) {
                                     Socket.update(user2.id, {friends: friends, requestsTo: requestsTo, requestsFrom: requestsFrom});
@@ -433,7 +433,7 @@ class SocketsController {
             Response.socket(ws, 'adding_self', {});
         }
     }
-    
+
     static deleteFriend(ws, data) {
         if (data.friendId !== ws.user_id) {
             Model.get('User').findOne({
@@ -447,57 +447,57 @@ class SocketsController {
                         delete ws.friends[index];
                         Model.get('User').update({
                             friends: Helper.getDbArray(ws.friends)
-                        }, {where: {id: ws.user_id}}).then(function(result) {
+                        }, {where: {id: ws.user_id}}).then(function (result) {
                             Socket.update(ws.user_id, {friends: ws.friends});
                         });
                     }
-                    
+
                     index = user2.friends.indexOf(ws.user_id);
                     if (index !== -1) {
                         delete user2.friends[index];
                         Model.get('User').update({
                             friends: Helper.getDbArray(user2.friends)
-                        }, {where: {id: user2.id}}).then(function(result) {
+                        }, {where: {id: user2.id}}).then(function (result) {
                             Socket.update(user2.id, {friends: user2.friends});
                         });
                     }
-                } else if(Helper.inArray(user2.id, ws.requestsFrom)) {
+                } else if (Helper.inArray(user2.id, ws.requestsFrom)) {
                     index = ws.requestsFrom.indexOf(user2.id);
                     if (index !== -1) {
                         delete ws.requestsFrom[index];
                         Model.get('User').update({
                             requestsFrom: Helper.getDbArray(ws.requestsFrom)
-                        }, {where: {id: ws.user_id}}).then(function(result) {
+                        }, {where: {id: ws.user_id}}).then(function (result) {
                             Socket.update(ws.user_id, {requestsFrom: ws.requestsFrom});
                         });
                     }
-                    
+
                     index = user2.requestsTo.indexOf(ws.user_id);
                     if (index !== -1) {
                         delete user2.requestsTo[index];
                         Model.get('User').update({
                             requestsTo: Helper.getDbArray(user2.requestsTo)
-                        }, {where: {id: user2.id}}).then(function(result) {
+                        }, {where: {id: user2.id}}).then(function (result) {
                             Socket.update(user2.id, {requestsTo: user2.requestsTo});
                         });
                     }
-                } else if(Helper.inArray(user2.id, ws.requestsTo)) {
+                } else if (Helper.inArray(user2.id, ws.requestsTo)) {
                     index = ws.requestsTo.indexOf(user2.id);
                     if (index !== -1) {
                         delete ws.requestsTo[index];
                         Model.get('User').update({
                             requestsTo: Helper.getDbArray(ws.requestsTo)
-                        }, {where: {id: ws.user_id}}).then(function(result) {
+                        }, {where: {id: ws.user_id}}).then(function (result) {
                             Socket.update(ws.user_id, {requestsTo: ws.requestsTo});
                         });
                     }
-                    
+
                     index = user2.requestsFrom.indexOf(ws.user_id);
                     if (index !== -1) {
                         delete user2.requestsFrom[index];
                         Model.get('User').update({
                             requestsFrom: Helper.getDbArray(user2.requestsFrom)
-                        }, {where: {id: user2.id}}).then(function(result) {
+                        }, {where: {id: user2.id}}).then(function (result) {
                             Socket.update(user2.id, {requestsFrom: user2.requestsFrom});
                         });
                     }
@@ -505,16 +505,16 @@ class SocketsController {
             });
         }
     }
-    
+
     static signup(ws, data) {
-        App.db().sync().then(function() {
+        App.db().sync().then(function () {
             const uuidV4 = require('uuid/v4');
             let keys = ['firstName', 'lastName', 'nickName', 'email', 'password', 'deviceOs', 'phone'];
             let user = Helper.leftKeys(data, keys);
             user.token = uuidV4();
             user.password = App.sha1(user.password);
-            return Model.get('User').create( user );
-        }).then(function(user){
+            return Model.get('User').create(user);
+        }).then(function (user) {
             user = user.toJSON();
             const keys = ['id', 'firstName', 'lastName', 'nickName', 'email', 'token', 'phone'];
             let response = Helper.leftKeys(user, keys);
@@ -523,11 +523,11 @@ class SocketsController {
             response.allowRandom = true;
             response.meetsCount = 0;
             Response.socket(ws, 'user_created', response);
-        }, function(error){
+        }, function (error) {
             console.log(error);
         });
     }
-    
+
     static unreadMessages(ws, data) {
         let limit = 20;
         if (data.limit && data.limit > 0) {
@@ -541,12 +541,12 @@ class SocketsController {
                 ['createdAt', 'ASC']
             ],
             include: [{
-                model: Model.get('User'),
-                as: 'sender',
-                attributes: ['id', 'nickName', 'avatar']
-            }]
+                    model: Model.get('User'),
+                    as: 'sender',
+                    attributes: ['id', 'nickName', 'avatar']
+                }]
         };
-        Model.get('UserMessage').findAll(query).then(function(messages) {
+        Model.get('UserMessage').findAll(query).then(function (messages) {
             if (messages.length > 0) {
                 // make it async
                 delete query.include;
@@ -560,67 +560,67 @@ class SocketsController {
             }
         });
     }
-    
-	static deletePhoto(ws, data) {
-		if (data.photo_id) {
-			Model.get('UserPhoto').findOne({
-				where: {id: data.photo_id, userId: ws.user_id}
-			}).then(function(photo) {
-				let photoId = photo.id;
-				if (ws.avatar === photo.src) {
-					Model.get('User').update({avatar: null}, {where: {id: ws.user_id}});
-					ws.avatar = '';
-					Response.socket(ws, 'avatar', {avatar: ''});
-				}
-				let fullPath = Config.get('app_path') + 'public/uploads' + photo.src;
-				let fs = require('fs');
-				if (fs.existsSync(fullPath)) {
-					fs.unlink(fullPath);
-				}
-				photo.destroy();
-				
-				Response.socket(ws, 'photo_deleted', {photo_id: photoId});
-			});
-		}
-	}
-	
-	static dialogues(ws, data) {
-		// its not possible to make correct DISTINCT ON("userFrom","userTo") with sequalize
-		let query = 'SELECT DISTINCT ON("userFrom","userTo") "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."id", "user_messages"."message", "user_messages"."createdAt", "user_messages"."message", "user_messages"."isDelivered", "sender"."id" AS "sender.id", "sender"."nickName" AS "sender.nickName", "sender"."avatar" AS "sender.avatar", "receiver"."id" AS "receiver.id", "receiver"."nickName" AS "receiver.nickName", "receiver"."avatar" AS "receiver.avatar"'+
-					'FROM "user_messages" AS "user_messages"'+
-					'LEFT OUTER JOIN "users" AS "sender" ON "user_messages"."userFrom" = "sender"."id"'+
-					'LEFT OUTER JOIN "users" AS "receiver" ON "user_messages"."userTo" = "receiver"."id"'+
-					'WHERE ("user_messages"."userFrom" = '+ws.user_id+' OR "user_messages"."userTo" = '+ws.user_id+')'+
-					'ORDER BY "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."createdAt" DESC';
-		
-		function sendResponse(err, data) {
-			Response.socket(ws, 'dialogues', {dialogues: data});
-		}
-		
-		function formatDialogue(dialogue, callback) {
-			process.nextTick(function() {
-				let isOwnMessage = (dialogue['sender.id'] == ws.user_id);
-				dialogue = {
-					id: dialogue.id,
-					createdAt: dialogue.createdAt,
-					delivered: dialogue.isDelivered,
-					message: dialogue.message,
-					user: {
-						id: (isOwnMessage) ? dialogue['sender.id'] : dialogue['receiver.id'],
-						avatar: (isOwnMessage) ? dialogue['sender.avatar'] : dialogue['receiver.avatar'],
-						nickName: (isOwnMessage) ? dialogue['sender.nickName'] : dialogue['receiver.nickName']
-					}
-				};
-				callback(null, dialogue);
-			});
-		}
-		
-		App.db().query(query).spread(function (results) {
-			let async = require('async');
-			async.map(results, formatDialogue, sendResponse);
-		});
-	}
-	
+
+    static deletePhoto(ws, data) {
+        if (data.photo_id) {
+            Model.get('UserPhoto').findOne({
+                where: {id: data.photo_id, userId: ws.user_id}
+            }).then(function (photo) {
+                let photoId = photo.id;
+                if (ws.avatar === photo.src) {
+                    Model.get('User').update({avatar: null}, {where: {id: ws.user_id}});
+                    ws.avatar = '';
+                    Response.socket(ws, 'avatar', {avatar: ''});
+                }
+                let fullPath = Config.get('app_path') + 'public/uploads' + photo.src;
+                let fs = require('fs');
+                if (fs.existsSync(fullPath)) {
+                    fs.unlink(fullPath);
+                }
+                photo.destroy();
+
+                Response.socket(ws, 'photo_deleted', {photo_id: photoId});
+            });
+        }
+    }
+
+    static dialogues(ws, data) {
+        // its not possible to make correct DISTINCT ON("userFrom","userTo") with sequalize
+        let query = 'SELECT DISTINCT ON("userFrom","userTo") "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."id", "user_messages"."message", "user_messages"."createdAt", "user_messages"."message", "user_messages"."isDelivered", "sender"."id" AS "sender.id", "sender"."nickName" AS "sender.nickName", "sender"."avatar" AS "sender.avatar", "receiver"."id" AS "receiver.id", "receiver"."nickName" AS "receiver.nickName", "receiver"."avatar" AS "receiver.avatar"' +
+                'FROM "user_messages" AS "user_messages"' +
+                'LEFT OUTER JOIN "users" AS "sender" ON "user_messages"."userFrom" = "sender"."id"' +
+                'LEFT OUTER JOIN "users" AS "receiver" ON "user_messages"."userTo" = "receiver"."id"' +
+                'WHERE ("user_messages"."userFrom" = ' + ws.user_id + ' OR "user_messages"."userTo" = ' + ws.user_id + ')' +
+                'ORDER BY "user_messages"."userFrom", "user_messages"."userTo", "user_messages"."createdAt" DESC';
+
+        function sendResponse(err, data) {
+            Response.socket(ws, 'dialogues', {dialogues: data});
+        }
+
+        function formatDialogue(dialogue, callback) {
+            process.nextTick(function () {
+                let isOwnMessage = (dialogue['sender.id'] == ws.user_id);
+                dialogue = {
+                    id: dialogue.id,
+                    createdAt: dialogue.createdAt,
+                    delivered: dialogue.isDelivered,
+                    message: dialogue.message,
+                    user: {
+                        id: (isOwnMessage) ? dialogue['sender.id'] : dialogue['receiver.id'],
+                        avatar: (isOwnMessage) ? dialogue['sender.avatar'] : dialogue['receiver.avatar'],
+                        nickName: (isOwnMessage) ? dialogue['sender.nickName'] : dialogue['receiver.nickName']
+                    }
+                };
+                callback(null, dialogue);
+            });
+        }
+
+        App.db().query(query).spread(function (results) {
+            let async = require('async');
+            async.map(results, formatDialogue, sendResponse);
+        });
+    }
+
     static login(ws, data) {
         if (!data.password) {
             Response.socket(ws, '', {}, __('password_empty'));
@@ -629,9 +629,9 @@ class SocketsController {
         } else {
 //            let whereCond = data.nickName ? {nickName: data.nickName} : {email: data.nickName};
             let whereCond = {$or: [
-                {nickName: data.nickName},
-                {email: data.nickName}
-            ]};
+                    {nickName: data.nickName},
+                    {email: data.nickName}
+                ]};
             Model.get('User').findOne({
                 where: whereCond
             }).then(function (user) {
@@ -640,8 +640,8 @@ class SocketsController {
                     if (App.sha1(data.password) === user.password) {
                         Socket.authorize(ws, user);
                         Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true, distance: ''});
-                        
-                        Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function(count) {
+
+                        Model.get('UserMessage').count({where: {userTo: user.id, isDelivered: false}}).then(function (count) {
                             let response = App.formatter().userProfile(user, count);
                             Response.socket(ws, 'user_logined', response);
                         });
@@ -651,100 +651,97 @@ class SocketsController {
                 } else {
                     Response.socket(ws, 'user_logined', {}, __('incorrect_login_or_pass'));
                 }
-            }, function(err) {
+            }, function (err) {
                 console.log(err);
             });
         }
     }
-    
-	static updatePassword(ws, data) {
-		if(data.old_password && data.new_password) {
+
+    static updatePassword(ws, data) {
+        if (data.old_password && data.new_password) {
             Model.get('User').findOne({
                 where: {id: ws.user_id}
             }).then(function (user) {
                 if (user) {
                     const sha1 = require('sha1');
                     if (App.sha1(data.old_password) === user.password) {
-                            const updateData = {password: App.sha1(data.new_password)};
-                            Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function(user) {
-                                    Response.socket(ws, 'password_updated', {});
-                            }, function(err) {
-                                    Response.socket(ws, 'password_updated', {}, __('update_profile_error'));
-                            });
+                        const updateData = {password: App.sha1(data.new_password)};
+                        Model.get('User').update(updateData, {where: {id: ws.user_id}}).then(function (user) {
+                            Response.socket(ws, 'password_updated', {});
+                        }, function (err) {
+                            Response.socket(ws, 'password_updated', {}, __('update_profile_error'));
+                        });
                     } else {
-                            Response.socket(ws, 'password_updated', {}, __('update_password_error'));
+                        Response.socket(ws, 'password_updated', {}, __('update_password_error'));
                     }
                 }
-            }, function(err) {
+            }, function (err) {
                 console.log(err);
             });
-		}
-	}
-	
-    static relogin(ws, data) {
-		if (data.api_token) {
-			
-			if (ws.user_id) {
-				Socket.del(ws.user_id);
-			}
-			
-			Model.get('User').findOne({
-			  where: {token: data.api_token}
-			}).then(function(user) {
-				if(user) {
-					Socket.authorize(ws, user);
-					Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true, distance: ''});
-					Response.socket(ws, 'relogined', {result: true});
-				} else {
-					Response.socket(ws, 'relogined', {result: false});
-				}
-			});
-		}
+        }
     }
-	
-	static friendsRequests(ws, data) {
-		if (ws.user_id) {
-			const user = Socket.clients(ws.user_id);
-			
-			const userAttributes = ['id', 'avatar', 'nickName', 'firstName', 'lastName', 'wasOnline', 'meetsCount', 'avatar'];
-			
-			let result = [];
-			
-			if (user.requestsFrom) {
-				const query = {
-						attributes: userAttributes,
-					where: {
-						id: {in: user.requestsFrom}
-					},
-					order: [
-						['createdAt', 'ASC']
-					]
-				};
-				let formattedUser = null;
-				Model.get('User').findAll(query).then( function(users) {
-					users.forEach(function (user, k) {
-						formattedUser = user.toJSON();
-						formattedUser.hasOnline = (Socket.clients(user.id)) ? true : false;
-						formattedUser.hasHidden = false;
-						formattedUser.distance = "";
 
-						if (Helper.isJson(ws.hiddenFriends)) {
-							let hiddenFriends = JSON.parse(ws.hiddenFriends);
-							if (Helper.inArray(formattedUser.id, hiddenFriends)) {
-								formattedUser.hasHidden = true;
-							}
-						}
+    static relogin(ws, data) {
+        if (data.api_token) {
 
-						result.push(formattedUser);
-					});
-					Response.socket(ws, 'requests_from', {friends: result});
-				});
-			} else {
-				Response.socket(ws, 'requests_from', {friends: result});
-			}
-		}
-	}
-	
+            if (ws.user_id) {
+                Socket.del(ws.user_id);
+            }
+
+            Model.get('User').findOne({
+                where: {token: data.api_token}
+            }).then(function (user) {
+                if (user) {
+                    Socket.authorize(ws, user);
+                    Socket.sendToFriends(ws, 'online_status', {id: ws.user_id, status: true, distance: ''});
+                    Response.socket(ws, 'relogined', {result: true});
+                } else {
+                    Response.socket(ws, 'relogined', {result: false});
+                }
+            });
+        }
+    }
+
+    static friendsRequests(ws, data) {
+        if (ws.user_id) {
+            const user = Socket.clients(ws.user_id);
+
+            const userAttributes = ['id', 'avatar', 'nickName', 'firstName', 'lastName', 'wasOnline', 'meetsCount', 'avatar'];
+
+            let result = [];
+
+            if (user.requestsFrom) {
+                const query = {
+                    attributes: userAttributes,
+                    where: {
+                        id: {in: user.requestsFrom}
+                    },
+                    order: [
+                        ['createdAt', 'ASC']
+                    ]
+                };
+                let formattedUser = null;
+                Model.get('User').findAll(query).then(function (users) {
+                    users.forEach(function (user, k) {
+                        formattedUser = user.toJSON();
+                        formattedUser.hasOnline = (Socket.clients(user.id)) ? true : false;
+                        formattedUser.hasHidden = false;
+                        formattedUser.distance = "";
+
+                        if (Helper.inArray(formattedUser.id, ws.hiddenFriends)) {
+                            formattedUser.hasHidden = true;
+                        }
+
+                        result.push(formattedUser);
+                    });
+                    Response.socket(ws, 'requests_from', {friends: result});
+                });
+            } else {
+                Response.socket(ws, 'requests_from', {friends: result});
+            }
+        }
+    }
+
     static friends(ws, data) {
         const friends = ws.friends;
         if (friends.length) {
@@ -759,118 +756,112 @@ class SocketsController {
                     ['createdAt', 'ASC']
                 ]
             };
-            
-			let result = [];
-			
-            Model.get('User').findAll(query).then(function(users) {
+
+            let result = [];
+
+            Model.get('User').findAll(query).then(function (users) {
                 let formattedUser = {};
                 users.forEach(function (user, k) {
                     formattedUser = user.toJSON();
                     formattedUser.hasOnline = (Socket.clients(user.id)) ? true : false;
                     formattedUser.hasHidden = false;
                     formattedUser.distance = "";
-                    
-                    if (Helper.isJson(ws.hiddenFriends)) {
-                        let hiddenFriends = JSON.parse(ws.hiddenFriends);
-                        if (Helper.inArray(formattedUser.id, hiddenFriends)) {
-                            formattedUser.hasHidden = true;
-                        }
+
+                    if (Helper.inArray(formattedUser.id, ws.hiddenFriends)) {
+                        formattedUser.hasHidden = true;
                     }
-					
+
                     result.push(formattedUser);
                 });
-				
-				const countUsers = result.length;
-				let friend = null;
-				
-				let send_response = function(error, result) {
-					let emptyDistances = [];
-					let withDistances = [];
-					result.forEach(function(item, k) {
-						if (item.distance) {
-							withDistances.push(item);
-						} else {
-							emptyDistances.push(item);
-						}
-					});
-					
-					function compare(a,b) {
-					  if (a.distance < b.distance)
-						return -1;
-					  if (a.distance > b.distance)
-						return 1;
-					  return 0;
-					}
-					
-					withDistances.sort(compare);
-					for(let i = 0; i < withDistances.length; i++) {
-						if (!isNaN(withDistances[i].distance)) {
-							withDistances[i].distance = App.formatter().distance(withDistances[i].distance);
-						}
-					}
-					
-					result = withDistances.concat(emptyDistances);
-					
-					Response.socket(ws, 'friends', {friends: result});
-				};
-				
 
-				/**
-				 * how to work correctly with async cycles
-				 */
-				
-				/**
-				 * 
-				var async = require('async');
-				function addOne(number, callback) {
-				  process.nextTick(function () {
-					console.log(number);
-					callback(null, ++number);
-				  });
-				}
-				function done(error, result) {
-				  console.log("map completed. Error: ", error, " result: ", result);
-				}
-				async.map([1,2,3,4,5], addOne, done);
-				*
-				*/
+                const countUsers = result.length;
+                let friend = null;
 
-				let async = require('async');
-				function getDistance(user, callback) {
-					process.nextTick(function () {
-						friend = Socket.clients(user.id);
-						if (friend) {
-							if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
-								// friends allowed and we are not hiding for this user
-								App.geo().distance(ws.user_id, friend.user_id, function(err, location) {
-									if (!err) {
-										user.distance = parseInt(location, 10);
-									}
-									callback(err, user);
-								});
-							} else {
-								callback(null, user);
-							}
-						} else {
-							callback(null, user);
-						}
-					});
-				}
-				async.map(result, getDistance, send_response);
+                let send_response = function (error, result) {
+                    let emptyDistances = [];
+                    let withDistances = [];
+                    result.forEach(function (item, k) {
+                        if (item.distance) {
+                            withDistances.push(item);
+                        } else {
+                            emptyDistances.push(item);
+                        }
+                    });
+
+                    function compare(a, b) {
+                        if (a.distance < b.distance)
+                            return -1;
+                        if (a.distance > b.distance)
+                            return 1;
+                        return 0;
+                    }
+
+                    withDistances.sort(compare);
+                    for (let i = 0; i < withDistances.length; i++) {
+                        if (!isNaN(withDistances[i].distance)) {
+                            withDistances[i].distance = App.formatter().distance(withDistances[i].distance);
+                        }
+                    }
+
+                    result = withDistances.concat(emptyDistances);
+
+                    Response.socket(ws, 'friends', {friends: result});
+                };
+
+
+                /**
+                 * how to work correctly with async cycles
+                 */
+
+                /**
+                 * 
+                 var async = require('async');
+                 function addOne(number, callback) {
+                 process.nextTick(function () {
+                 console.log(number);
+                 callback(null, ++number);
+                 });
+                 }
+                 function done(error, result) {
+                 console.log("map completed. Error: ", error, " result: ", result);
+                 }
+                 async.map([1,2,3,4,5], addOne, done);
+                 *
+                 */
+
+                let async = require('async');
+                function getDistance(user, callback) {
+                    process.nextTick(function () {
+                        friend = Socket.clients(user.id);
+                        if (friend) {
+                            if (ws.lat && ws.lon && friend.lat && friend.lon && friend.allowFriends && !Helper.inArray(ws.user_id, friend.hiddenFriends)) {
+                                // friends allowed and we are not hiding for this user
+                                App.geo().distance(ws.user_id, friend.user_id, function (err, location) {
+                                    if (!err) {
+                                        user.distance = parseInt(location, 10);
+                                    }
+                                    callback(err, user);
+                                });
+                            } else {
+                                callback(null, user);
+                            }
+                        } else {
+                            callback(null, user);
+                        }
+                    });
+                }
+                async.map(result, getDistance, send_response);
             });
         } else {
             Response.socket(ws, 'friends', {friends: []});
         }
     }
-    
+
     static requestMeeting(ws, data) {
         if (data.userId && data.userId !== ws.user_id) {
             let client = Socket.clients(data.userId);
             if (client) {
-                const hiddenFriends = JSON.parse(client.hiddenFriends);
-                console.log(1);
-                if (!Helper.inArray(ws.user_id, hiddenFriends)) {
-                    console.log(2);
+                if (!Helper.inArray(ws.user_id, client.hiddenFriends)) {
                     const query = {
                         where: {
                             status: 1,
@@ -912,10 +903,10 @@ class SocketsController {
             // встреча с самим собой
         }
     }
-	
+
     static discardMeeting(ws, data) {
         if (data.meetingId) {
-            Model.get('Meeting').findOne({where: {id: data.meetingId, status: [0, 1]}}).then(function(meeting) {
+            Model.get('Meeting').findOne({where: {id: data.meetingId, status: [0, 1]}}).then(function (meeting) {
                 if (meeting) {
                     if (meeting.userFrom === ws.user_id || meeting.userTo === ws.user_id) {
                         // async update
@@ -936,10 +927,10 @@ class SocketsController {
             });
         }
     }
-    
+
     static approveMeeting(ws, data) {
         if (data.meetingId) {
-            Model.get('Meeting').findOne({where: {id: data.meetingId, status: 0}}).then(function(meeting) {
+            Model.get('Meeting').findOne({where: {id: data.meetingId, status: 0}}).then(function (meeting) {
                 if (meeting) {
                     if (ws.user_id === meeting.userTo) {
                         let date = new Date(Date.now() + Config.get('meeting_expired'));
@@ -959,7 +950,7 @@ class SocketsController {
             });
         }
     }
-    
+
     static meetings(ws, data) {
         let query = {
             where: {
@@ -970,19 +961,19 @@ class SocketsController {
                 ]
             },
             include: [
-                { model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar'] },
-                { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
+                {model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar']},
+                {model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar']}
             ],
             order: 'createdAt DESC'
         };
-        Model.get('Meeting').findAll(query).then(function(meetings) {
+        Model.get('Meeting').findAll(query).then(function (meetings) {
             let formatted = [];
             if (meetings) {
                 let myRequest = false;
                 let result = {};
                 let expiredAt = 0;
                 let timeLeft = 0;
-                meetings.forEach(function(meeting, key) {
+                meetings.forEach(function (meeting, key) {
                     myRequest = (meeting.userFrom === ws.user_id);
                     if (myRequest) {
                         result.user = meeting.receiver.toJSON();
@@ -1004,7 +995,7 @@ class SocketsController {
             Response.socket(ws, 'meetings', {meetings: formatted});
         });
     }
-    
+
     static doMeeting(ws, data) {
         const query = {
             where: {
@@ -1015,21 +1006,21 @@ class SocketsController {
                 ]
             },
             include: [
-                { model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar'] },
-                { model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar'] }
+                {model: Model.get('User'), as: 'sender', attributes: ['id', 'nickName', 'avatar']},
+                {model: Model.get('User'), as: 'receiver', attributes: ['id', 'nickName', 'avatar']}
             ]
         };
-		
+
         let clientId = null;
-        Model.get('Meeting').findAll(query).then(function(meetings) {
+        Model.get('Meeting').findAll(query).then(function (meetings) {
             if (meetings) {
                 let users = [];
                 let user = {};
-				let client = null;
-				let meetsCount = 0;
-                meetings.forEach(function(meeting, key) {
+                let client = null;
+                let meetsCount = 0;
+                meetings.forEach(function (meeting, key) {
                     clientId = (meeting.userFrom === ws.user_id) ? meeting.userTo : meeting.userFrom;
-                    App.geo().location(clientId, function(err, location) {
+                    App.geo().location(clientId, function (err, location) {
                         if (!err) {
                             if (location) {
                                 if (meeting.userFrom === ws.user_id) {
@@ -1039,56 +1030,56 @@ class SocketsController {
                                 }
                                 user.lat = location.latitude;
                                 user.lon = location.longitude;
-								
-								App.geo().distance(ws.user_id, user.id, function(hz, distance) {
-									
-									if (distance < Config.get('meeting_complete_meters')) {
-										// set meeting status success
-										Model.get('Meeting').update({status: 2}, {where: {id: meeting.id}}).then(function(count) {
-											// increment success meets count
-											const usersQuery = {
-												where: {
-													$or: [
-														{id: ws.user_id},
-														{id: user.id}
-													]
-												}
-											};
-											Model.get('User').findAll(usersQuery).then(function(meetUsers) {
-												meetUsers.forEach(function(metUser, mkey) {
-													meetsCount = metUser.meetsCount + 1;
-													metUser.increment('meetsCount');
-													client = Socket.clients(metUser.id);
-													if (client) {
-														Socket.update(metUser.id, {meetsCount: meetsCount});
-														Response.socket(client, 'meeting_success', {meetingId: meeting.id, meetsCount: meetsCount});
-													} else {
-														// push
-													}
-												});
-											});
-										});
+
+                                App.geo().distance(ws.user_id, user.id, function (hz, distance) {
+
+                                    if (distance < Config.get('meeting_complete_meters')) {
+                                        // set meeting status success
+                                        Model.get('Meeting').update({status: 2}, {where: {id: meeting.id}}).then(function (count) {
+                                            // increment success meets count
+                                            const usersQuery = {
+                                                where: {
+                                                    $or: [
+                                                        {id: ws.user_id},
+                                                        {id: user.id}
+                                                    ]
+                                                }
+                                            };
+                                            Model.get('User').findAll(usersQuery).then(function (meetUsers) {
+                                                meetUsers.forEach(function (metUser, mkey) {
+                                                    meetsCount = metUser.meetsCount + 1;
+                                                    metUser.increment('meetsCount');
+                                                    client = Socket.clients(metUser.id);
+                                                    if (client) {
+                                                        Socket.update(metUser.id, {meetsCount: meetsCount});
+                                                        Response.socket(client, 'meeting_success', {meetingId: meeting.id, meetsCount: meetsCount});
+                                                    } else {
+                                                        // push
+                                                    }
+                                                });
+                                            });
+                                        });
 //										{"command": "meeting_success", "data": {"meetingId": "123", “meetsCount”: “5”}}
-									} else {
-										user.distance = distance;
-										users.push(user);
-										if (!meeting[key + 1]) {
-											Response.socket(ws, 'meeting_users', {users: users});
-										}
-									}
-								});
+                                    } else {
+                                        user.distance = distance;
+                                        users.push(user);
+                                        if (!meeting[key + 1]) {
+                                            Response.socket(ws, 'meeting_users', {users: users});
+                                        }
+                                    }
+                                });
                             } else {
                                 console.log('location not set.');
                             }
                         }
-                    });                
+                    });
                 });
             } else {
                 Response.socket(ws, 'meeting_users', {users: []});
             }
         });
     }
-    
+
 }
 
 module.exports.SocketsController = SocketsController;
@@ -1100,7 +1091,7 @@ module.exports.SocketsController = SocketsController;
  * 2 - meeting success
  * 3 - meeting discarded
  * 4 - meeting expired
-*/
+ */
 
 /*
  * REQUESTS:

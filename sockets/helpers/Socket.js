@@ -1,21 +1,21 @@
 "use strict";
 
 class Socket {
-    
+
     static add(client) {
         Socket.__check_clients();
         if (Helper.isVar(client.user_id)) {
             Socket.__clients[client.user_id] = client;
         }
     }
-    
+
     static del(client_id) {
         Socket.__check_clients();
         if (Helper.isVar(client_id) && Helper.isVar(Socket.__clients[client_id])) {
             delete(Socket.__clients[client_id]);
         }
     }
-    
+
     static clients(client_id) {
         Socket.__check_clients();
         if (Helper.isVar(client_id) && client_id) {
@@ -28,16 +28,16 @@ class Socket {
             return Socket.__clients;
         }
     }
-    
+
     static update(client_id, data) {
         Socket.__check_clients();
         if (Socket.__clients[client_id]) {
-            Object.keys(data).forEach(function(key) {
+            Object.keys(data).forEach(function (key) {
                 Socket.__clients[client_id][key] = data[key];
             });
         }
     }
-    
+
     static isLogined(client) {
         if (Helper.isVar(client.user_id) && Socket.clients(client.user_id) !== null) {
             return true;
@@ -45,15 +45,11 @@ class Socket {
             return false;
         }
     }
-    
+
     static authorize(ws, user) {
         Socket.__check_clients();
         if (Helper.isVar(ws.user_id)) {
             delete(Socket.__clients[ws.user_id]);
-        }
-        let friendsCount = 0;
-        if (user.friends) {
-            friendsCount = user.friends.length;
         }
         ws.user_id = user.id;
         ws.avatar = user.avatar;
@@ -62,11 +58,11 @@ class Socket {
         ws.nickName = user.nickName;
         ws.firstName = user.firstName;
         ws.lastName = user.lastName;
-        ws.friends = user.friends;
-        ws.hiddenFriends = user.hiddenFriends;
-        ws.friendsCount = friendsCount;
-        ws.requestsFrom = user.requestsFrom;
-        ws.requestsTo = user.requestsTo;
+        ws.friends = JSON.parse(user.friends);
+        ws.hiddenFriends = JSON.parse(user.hiddenFriends);
+        ws.friendsCount = JSON.parse(user.friends).length;
+        ws.requestsFrom = JSON.parse(user.requestsFrom);
+        ws.requestsTo = JSON.parse(user.requestsTo);
         ws.allowFriends = user.allowFriends;
         ws.allowRandom = user.allowRandom;
         ws.meetsCount = user.meetsCount;
@@ -75,36 +71,36 @@ class Socket {
         ws.pushesEnabled = user.pushesEnabled;
         Socket.__clients[user.id] = ws;
     }
-    
+
     static __check_clients() {
         if (!Socket.__clients) {
             Socket.__clients = {};
         }
     }
-    
+
     static sendToFriends(ws, command, data) {
         if (ws && Helper.isVar(ws.friends)) {
-			let async = require('async');
-			function send(friend_id, callback) {
-				process.nextTick(function () {
-					let friend = Socket.clients(friend_id);
-					if (friend) {
-						Response.socket(friend, command, data);
-					}
-					callback(null, friend_id);
-				});
-				
-			}
-			async.map(ws.friends, send);
+            let async = require('async');
+            function send(friend_id, callback) {
+                process.nextTick(function () {
+                    let friend = Socket.clients(friend_id);
+                    if (friend) {
+                        Response.socket(friend, command, data);
+                    }
+                    callback(null, friend_id);
+                });
+
+            }
+            async.map(ws.friends, send);
         }
     }
-    
+
     static nearPushKey(receiverId, friendId) {
         // n_p - near_push
         // format - n_p_15_6 = 1488110090043 (timestamp need deviding by 1000)
         return 'n_p_' + receiverId + '_' + friendId;
     }
-    
+
     static friendNearPush(receiverId, friendId, distance) {
         const receiver = Socket.clients(receiverId);
         const friend = Socket.clients(friendId);
@@ -112,28 +108,28 @@ class Socket {
             const redisKey = Socket.nearPushKey(receiverId, friendId);
             App.redis().get(redisKey, function (err, resp) {
                 if (!err) {
-					// no resp from redis - key for push expired and we can send another
+                    // no resp from redis - key for push expired and we can send another
                     let send = (!resp);
                     if (send) {
-						Model.get('User').findOne({
-						  where: {id: friendId}
-						}).then(function(user) {
-							if (user) {
-								
-								App.redis().setex(redisKey, Config.get('near_push_expired'), Date.now());
-								
-								let message = __('friend_near_you');
-								distance = parseInt(distance);
-								message = message.replace('{friend}', receiver.nickName).replace('{distance}', App.formatter().distance(distance));
-								let pusher = require(__root_dir + '/helpers/Push').Push;
-								const data = {
-									title: 'Jinger', // REQUIRED 
-									body: message // REQUIRED 
-								};
-								pusher.send(user, data);
-							}
-						});
-						
+                        Model.get('User').findOne({
+                            where: {id: friendId}
+                        }).then(function (user) {
+                            if (user) {
+
+                                App.redis().setex(redisKey, Config.get('near_push_expired'), Date.now());
+
+                                let message = __('friend_near_you');
+                                distance = parseInt(distance);
+                                message = message.replace('{friend}', receiver.nickName).replace('{distance}', App.formatter().distance(distance));
+                                let pusher = require(__root_dir + '/helpers/Push').Push;
+                                const data = {
+                                    title: 'Jinger', // REQUIRED 
+                                    body: message // REQUIRED 
+                                };
+                                pusher.send(user, data);
+                            }
+                        });
+
                         // Response.socket(friend, 'friend_near', {}, message);
                     }
                 }
